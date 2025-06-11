@@ -6,12 +6,20 @@ import {
     Source,
 } from './MainNewsCardStyle';
 
-export default function MainNewsCard({ imageSrc, title, source }) {
+import { useNavigate } from 'react-router-dom';
+
+export default function MainNewsCard({ imageSrc, title, source, newsId }) {
+    const navigate = useNavigate();
+
+    const handleClick = () => {
+        navigate(`/detail?id=${newsId}`);
+    };
+
     return (
-        <CardContainer>
+        <CardContainer >
             <CardImage src={imageSrc} alt="news" />
             <Overlay>
-                <Title>{title}</Title>
+                <Title onClick={handleClick}>{title}</Title>
                 <Source>{source}</Source>
             </Overlay>
         </CardContainer>

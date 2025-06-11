@@ -1,5 +1,6 @@
 import volumeIcon from '../../assets/volume.png';
-import { useState } from 'react';
+import defaultThumbnail from '../../assets/sample.webp'; // 기본 이미지 추가
+import { useState, useEffect } from 'react';
 import {
     Wrapper,
     TitleRow,
@@ -7,48 +8,86 @@ import {
     VolumeIcon,
     Meta,
     Body,
-    MetaWrapper
+    MetaWrapper,
+    Thumbnail
 } from './NewsDetailStyle';
 import AudioController from './AudioController';
+import { useSearchParams } from 'react-router-dom';
 
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function NewsDetail() {
+    const [searchParams] = useSearchParams();
+    const newsId = searchParams.get('id');
+
     const [showController, setShowController] = useState(false);
+    const [title, setTitle] = useState('');
+    const [publisher, setPublisher] = useState('');
+    const [publishedAt, setPublishedAt] = useState('');
+    const [body, setBody] = useState('');
+    const [thumbnailUrl, setThumbnailUrl] = useState(defaultThumbnail);
 
-    const title = 'IU is coming with “Three Flower Petals”';
-    const publisher = 'Star Today';
-    const timeAgo = '1 hour ago';
-    const body = `Singer IU is coming.
+    useEffect(() => {
+        const fetchNewsDetail = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/news/${newsId}`);
 
-IU will release her third remake album, “Flower Bookmarks 3,” at 6 p.m. on the 27th through various music sites. This album marks the return of the “Flower Petal” series after about eight years since “Flower Petal Two” in 2017, and it is also her first new release in about a year and three months since her sixth mini-album “The Winning” in February 2024, adding even more significance to it.
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-“Flower Petal Three” includes a total of six songs, including the title song “Never Ending Story,” “Red Sneakers,” “October 4,” “Last Scene (Feat. Wonstein),” “Beauty (Feat. Balming Tiger),” and “The Dream of a Square.”
+                const data = await response.json();
 
-In this album, IU has once again reinterpreted classic songs with her own sensibility and lyrical voice while preserving the charm of the original songs. IU, who has received critical acclaim for her diverse remakes of songs such as “Autumn Morning,” “Your Meaning,” and “Sleepless Night, Rain is Falling” in her previous series, is set to showcase her deep, generation-spanning artistry once more.`;
+                const publishedTime = data.publishedAt;
+                const formattedDate = publishedTime
+                    ? `${publishedTime[0]}-${String(publishedTime[1]).padStart(2, '0')}-${String(publishedTime[2]).padStart(2, '0')} ${String(publishedTime[3]).padStart(2, '0')}:${String(publishedTime[4]).padStart(2, '0')}`
+                    : 'unknown';
+
+                setTitle(data.title || '제목 없음');
+                setPublisher(data.provider || 'unknown');
+                setPublishedAt(formattedDate);
+                setBody(data.content || '내용이 없습니다.');
+
+                if (data.imageUrls && data.imageUrls.length > 0) {
+                    setThumbnailUrl(data.imageUrls[0]);
+                } else {
+                    setThumbnailUrl(defaultThumbnail);
+                }
+
+            } catch (err) {
+                console.error('뉴스 상세 불러오기 실패:', err);
+            }
+        };
+
+        if (newsId) {
+            fetchNewsDetail();
+        }
+    }, [newsId]);
 
     return (
-        <Wrapper>
-            <TitleRow>
-                <Title>{title}</Title>
-            </TitleRow>
-            <MetaWrapper>
-                <VolumeIcon
-                    src={volumeIcon}
-                    alt="sound"
-                    onClick={() => setShowController(prev => !prev)}
-                    style={{ cursor: 'pointer' }}
-                />
-                {showController && <AudioController />}
-                <Meta>
-                    <div>{publisher}</div>
-                    <div>{timeAgo}</div>
-                </Meta>
-            </MetaWrapper>
+        <div>
+            <Thumbnail src={thumbnailUrl} alt="뉴스 썸네일" />
+            <Wrapper>
+                <TitleRow>
+                    <Title>{title}</Title>
+                </TitleRow>
+                <MetaWrapper>
+                    <VolumeIcon
+                        src={volumeIcon}
+                        alt="sound"
+                        onClick={() => setShowController(prev => !prev)}
+                        style={{ cursor: 'pointer' }}
+                    />
+                    {showController && <AudioController text={body.replace(/([.!?])\s+/g, '$1\n\n')} />}
+                    <Meta>
+                        <div>{publisher}</div>
+                        <div>{publishedAt}</div>
+                    </Meta>
+                </MetaWrapper>
 
-            <Body>{body}</Body>
+                <Body>{body}</Body>
+            </Wrapper>
+        </div>
 
-
-        </Wrapper>
     );
 }

@@ -1,6 +1,8 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import MainNewsCard from './MainNewsCard';
 import sampleImg from '../../assets/sample.webp';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 import {
     TrendingContainer,
@@ -14,18 +16,33 @@ import {
 export default function TrendingSection() {
     const sliderRef = useRef(null);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [cards, setCards] = useState([]);
 
-    const cards = [
-        { title: 'IU is coming with “Three Flower Petals” IU is coming with “Three Flower Petals IU is coming with “Three Flower Petals', source: '마이데일리', imageSrc: sampleImg },
-        { title: '또 다른 뉴스 제목1', source: '뉴스1', imageSrc: sampleImg },
-        { title: '트렌드 카드 예시2', source: '중앙일보', imageSrc: sampleImg },
-        { title: '트렌드 카드 예시3', source: '중앙일보', imageSrc: sampleImg },
-        { title: '트렌드 카드 예시4', source: '중앙일보', imageSrc: sampleImg }
-    ];
+    // 뉴스 불러오기
+    useEffect(() => {
+        const fetchNews = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/news/list`);
+                const data = await response.json();
+
+                const newsCards = data.map(item => ({
+                    title: item.title,
+                    imageSrc: item.thumbnailUrl ? item.thumbnailUrl : sampleImg,
+                    newsId: item.newsId
+                }));
+
+                setCards(newsCards);
+            } catch (err) {
+                console.error('뉴스 불러오기 실패:', err);
+            }
+        };
+
+        fetchNews();
+    }, []);
 
     const handleScroll = () => {
         const scrollLeft = sliderRef.current.scrollLeft;
-        const cardWidth = 400 + 16; // 카드 너비 + gap 값
+        const cardWidth = 400 + 16; // 카드 너비 + gap
         const index = Math.round(scrollLeft / cardWidth);
         setCurrentIndex(index);
     };
@@ -38,7 +55,7 @@ export default function TrendingSection() {
                     <CardWrapper
                         key={index}
                         onClick={() => {
-                            const cardWidth = 400 + 16; // 카드 + gap
+                            const cardWidth = 400 + 16;
                             const slider = sliderRef.current;
                             if (!slider) return;
 
@@ -52,12 +69,11 @@ export default function TrendingSection() {
 
                             setCurrentIndex(index);
                         }}
-
                     >
                         <MainNewsCard
                             imageSrc={card.imageSrc}
                             title={card.title}
-                            source={card.source}
+                            newsId={card.newsId}
                         />
                     </CardWrapper>
                 ))}

@@ -1,27 +1,46 @@
+import { useRef, useState } from 'react';
 import {
     ControllerWrapper,
     TitleRow,
-    ProgressBar,
-    Controls,
     ControlButton,
-    IconImage
+    IconImage,
+    MainWrapper,
+    LoadingImage
 } from './AudioControllerStyle';
 
-import prevIcon from '../../assets/prev.png';
 import playIcon from '../../assets/play.png';
-import nextIcon from '../../assets/next.png';
+import loadingIcon from '../../assets/loading.gif';
 
-export default function AudioController() {
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+export default function AudioController({ text }) {
+    const [logMessages, setLogMessages] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const chunkIndexRef = useRef(1);
+    const readerRef = useRef(null);
+    const audioContextRef = useRef(null);
+
     const handlePlay = async () => {
+        if (isLoading) {
+            readerRef.current?.cancel();
+            audioContextRef.current?.close();
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+        setLogMessages([]);
+        chunkIndexRef.current = 1;
+
         try {
-            const response = await fetch('http://localhost:8080/api/voice', {
+            const response = await fetch(`${API_BASE_URL}/api/voice`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     language: '한국어',
-                    text: '가수 아이유가 세 번째 리메이크 앨범 꽃갈피 셋으로 주요 음원차트를 휩쓸었습니다. 타이틀곡 네버 엔딩 스토리는 어제(28일) 멜론 핫100 등 음원차트 1위에 올랐고, 수록곡 역시 순위권에 진입하며 뜨거운 반응을 얻었습니다.\n\n또 영화 8월의 크리스마스를 오마주한 네버 엔딩 스토리의 뮤직비디오는 공개 7시간 만에 조회수 100만 회를 돌파하며 인기 급상승 음악 1위를 차지했습니다.'
+                    text: text
                 })
             });
 
@@ -31,15 +50,18 @@ export default function AudioController() {
 
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const reader = response.body.getReader();
+            readerRef.current = reader;
+            audioContextRef.current = audioContext;
+
             let buffer = new Uint8Array(0);
             const delimiter = new TextEncoder().encode("\n--END--\n");
-
             const queue = [];
             let isPlaying = false;
 
             const playNextChunk = () => {
                 if (queue.length === 0) {
                     isPlaying = false;
+                    setIsLoading(false);
                     return;
                 }
 
@@ -49,18 +71,13 @@ export default function AudioController() {
                 source.buffer = audioBuffer;
                 source.connect(audioContext.destination);
                 source.start();
-                source.onended = () => {
-                    playNextChunk(); // 다음 chunk 재생
-                };
+                source.onended = () => playNextChunk();
             };
 
             const readLoop = async () => {
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) {
-                        console.log('✅ 전체 스트림 수신 완료');
-                        break;
-                    }
+                    if (done) break;
 
                     const newBuffer = new Uint8Array(buffer.length + value.length);
                     newBuffer.set(buffer);
@@ -75,11 +92,13 @@ export default function AudioController() {
                         try {
                             const audioBuffer = await audioContext.decodeAudioData(chunk.buffer.slice(0));
                             queue.push(audioBuffer);
-                            if (!isPlaying) {
-                                playNextChunk();
-                            }
+
+                            const index = chunkIndexRef.current++;
+                            setLogMessages(prev => [...prev.slice(-1), `${index}번 문단 합성 완료!`]);
+
+                            if (!isPlaying) playNextChunk();
                         } catch (e) {
-                            console.error('🔴 오디오 디코딩 실패:', e);
+                            console.error('오디오 디코딩 실패:', e);
                         }
                     }
                 }
@@ -89,6 +108,7 @@ export default function AudioController() {
 
         } catch (err) {
             console.error('오디오 재생 오류:', err);
+            setIsLoading(false);
         }
     };
 
@@ -109,20 +129,22 @@ export default function AudioController() {
     return (
         <ControllerWrapper>
             <TitleRow>
-                <span>Currently Playing : BTS IU</span>
+                <span>Currently Playing : IU</span>
             </TitleRow>
-            <ProgressBar />
-            <Controls>
-                <ControlButton>
-                    <IconImage src={prevIcon} alt="prev" />
-                </ControlButton>
+            <MainWrapper>
                 <ControlButton onClick={handlePlay}>
-                    <IconImage src={playIcon} alt="play" />
+                    {isLoading ? (
+                        <LoadingImage src={loadingIcon} alt="loading" />
+                    ) : (
+                        <IconImage src={playIcon} alt="play" />
+                    )}
                 </ControlButton>
-                <ControlButton>
-                    <IconImage src={nextIcon} alt="next" />
-                </ControlButton>
-            </Controls>
+                <div style={{ padding: '8px 20px', fontSize: '14px', color: '#00E52E' }}>
+                    {logMessages.map((msg, idx) => (
+                        <div key={idx}>{msg}</div>
+                    ))}
+                </div>
+            </MainWrapper>
         </ControllerWrapper>
     );
 }

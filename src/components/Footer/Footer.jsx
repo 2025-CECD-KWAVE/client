@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import {
     FooterContainer,
     FooterInner,
@@ -12,14 +13,16 @@ import bookmarkIcon from '../../assets/bookmark.png';
 import userIcon from '../../assets/person.png';
 
 export default function Footer() {
+    const navigate = useNavigate();
+
     return (
         <FooterContainer>
             <FooterInner>
-                <FooterItem>
+                <FooterItem onClick={() => navigate('/')}>
                     <Label>Home</Label>
                 </FooterItem>
 
-                <FooterItem>
+                <FooterItem onClick={() => navigate('/discover')}>
                     <IconWrapper>
                         <IconImage src={globeIcon} alt="Globe" />
                     </IconWrapper>
@@ -31,7 +34,7 @@ export default function Footer() {
                     </IconWrapper>
                 </FooterItem>
 
-                <FooterItem>
+                <FooterItem onClick={() => navigate('/signin')}>
                     <IconWrapper>
                         <IconImage src={userIcon} alt="User" />
                     </IconWrapper>

@@ -1,9 +1,13 @@
 import styled from 'styled-components';
 
 export const IconImage = styled.img`
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+  width: 32px;
+  height: 32px;
+`;
+
+export const MainWrapper = styled.div`
+  display: flex;
+  gap:25px;
 `;
 
 export const ControllerWrapper = styled.div`
@@ -12,9 +16,10 @@ export const ControllerWrapper = styled.div`
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
+  height: 95px;
   background: white;
   border-radius: 24px;
-  border: 1px solid #333;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.01);  // 데스크탑에서 틀 느낌
   padding: 16px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   z-index: 10;
@@ -25,16 +30,10 @@ export const TitleRow = styled.div`
   justify-content: space-between;
   align-items: center;
   font-weight: bold;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+  margin-left: 16px;
 `;
 
-export const ProgressBar = styled.div`
-  width: 100%;
-  height: 6px;
-  background: linear-gradient(to right, #f66 30%, #ccc 30%);
-  border-radius: 3px;
-  margin-bottom: 8px;
-`;
 
 export const Controls = styled.div`
   display: flex;
@@ -46,4 +45,9 @@ export const ControlButton = styled.button`
   border: none;
   font-size: 20px;
   cursor: pointer;
+`;
+
+export const LoadingImage = styled.img`
+  width: 48px;
+  height: 48px;
 `;

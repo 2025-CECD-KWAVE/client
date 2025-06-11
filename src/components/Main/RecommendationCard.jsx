@@ -1,3 +1,4 @@
+// RecommendationCard.jsx
 import {
     CardContainer,
     Thumbnail,
@@ -8,9 +9,17 @@ import {
     Time,
 } from './RecommendationCardStyle';
 
-export default function RecommendationCard({ imageSrc, title, source, time }) {
+import { useNavigate } from 'react-router-dom';
+
+export default function RecommendationCard({ imageSrc, title, source, time, newsId }) {
+    const navigate = useNavigate();
+
+    const handleClick = () => {
+        navigate(`/detail?id=${newsId}`);
+    };
+
     return (
-        <CardContainer>
+        <CardContainer onClick={handleClick}>
             <Thumbnail src={imageSrc} alt="썸네일" />
             <Content>
                 <Title>{title}</Title>
