@@ -32,14 +32,14 @@ const Message = styled.div`
 
 export default function Discover() {
     const [newsList, setNewsList] = useState([]);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const loader = useRef(null);
     const navigate = useNavigate();
 
     const fetchNews = useCallback(async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/list?page=${page}`);
+            const response = await fetch(`${API_BASE_URL}/api/news/list?page=${page}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const data = await response.json();
