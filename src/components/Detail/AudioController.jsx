@@ -20,6 +20,20 @@ export default function AudioController({ text }) {
     const readerRef = useRef(null);
     const audioContextRef = useRef(null);
 
+    const detectLanguage = (text) => {
+        const hasKorean = /[가-힣]/.test(text);
+        const hasJapaneseKana = /[ぁ-ゔァ-ヴー々〆〤]/.test(text); // 히라가나+가타카나
+        const hasChineseHan = /[\u4E00-\u9FFF]/.test(text); // CJK 한자
+        const hasEnglish = /[a-zA-Z]/.test(text);
+
+        if (hasKorean) return '한국어';
+        if (hasJapaneseKana) return '일본어';
+        if (hasChineseHan) return '중국어';
+        if (hasEnglish) return '영어';
+        return '한국어'; // 기본값
+    };
+
+
     const handlePlay = async () => {
         if (isLoading) {
             readerRef.current?.cancel();
@@ -33,14 +47,16 @@ export default function AudioController({ text }) {
         chunkIndexRef.current = 1;
 
         try {
+            const language = detectLanguage(text);
+
             const response = await fetch(`${API_BASE_URL}/api/voice`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    language: '한국어',
-                    text: text
+                    language,
+                    text
                 })
             });
 
@@ -129,8 +145,13 @@ export default function AudioController({ text }) {
     return (
         <ControllerWrapper>
             <TitleRow>
-                <span>Currently Playing : IU</span>
+                <span>
+                    {isLoading
+                        ? 'Currently Reading the News : IU'
+                        : 'Experience the News in a K-POP Voice'}
+                </span>
             </TitleRow>
+
             <MainWrapper>
                 <ControlButton onClick={handlePlay}>
                     {isLoading ? (

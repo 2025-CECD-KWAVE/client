@@ -12,7 +12,7 @@ export const MainWrapper = styled.div`
 
 export const ControllerWrapper = styled.div`
   position: absolute;
-  top: 620px; // 필요에 따라 조정
+  top: 430px; // 필요에 따라 조정
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
