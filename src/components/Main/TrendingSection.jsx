@@ -1,9 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import MainNewsCard from './MainNewsCard';
 import sampleImg from '../../assets/sample.webp';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 import {
     TrendingContainer,
     SectionTitle,
@@ -13,12 +10,13 @@ import {
     IndicatorDot
 } from './TrendiongSectionStyle';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function TrendingSection() {
     const sliderRef = useRef(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [cards, setCards] = useState([]);
 
-    // 뉴스 불러오기
     useEffect(() => {
         const fetchNews = async () => {
             try {
@@ -81,7 +79,7 @@ export default function TrendingSection() {
 
             <IndicatorContainer>
                 {cards.map((_, index) => (
-                    <IndicatorDot key={index} active={index === currentIndex} />
+                    <IndicatorDot key={index} $active={index === currentIndex} />
                 ))}
             </IndicatorContainer>
         </TrendingContainer>

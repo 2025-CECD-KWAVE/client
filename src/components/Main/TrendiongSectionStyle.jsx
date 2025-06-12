@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components';
 
 export const TrendingContainer = styled.div`
   margin-top: 24px;
@@ -37,10 +37,17 @@ export const IndicatorContainer = styled.div`
   gap: 6px;
 `;
 
+
 export const IndicatorDot = styled.div`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: ${({ active }) => (active ? '#333' : '#ccc')};
-  transition: background-color 0.3s;
+  background-color: #ccc;
+  transition: background-color 0.3s ease;
+
+  ${({ $active }) =>
+    $active &&
+    css`
+      background-color: #4a42f4;
+    `}
 `;

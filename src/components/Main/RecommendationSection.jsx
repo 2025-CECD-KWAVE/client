@@ -33,6 +33,7 @@ const Message = styled.div`
 export default function RecommendationSection() {
     const [recommendations, setRecommendations] = useState([]);
     const [isLoggedIn, setIsLoggedIn] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -40,6 +41,7 @@ export default function RecommendationSection() {
 
         if (!token) {
             setIsLoggedIn(false);
+            setIsLoading(false);
             return;
         }
 
@@ -69,6 +71,8 @@ export default function RecommendationSection() {
             } catch (error) {
                 console.error('추천 뉴스 불러오기 실패:', error);
                 setIsLoggedIn(false);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -83,6 +87,11 @@ export default function RecommendationSection() {
 
             {!isLoggedIn ? (
                 <Message>로그인 후에 맞춤형 뉴스를 추천 받아보세요</Message>
+            ) : isLoading ? (
+                // ✅ Skeleton 3개 보여주기
+                Array.from({ length: 3 }).map((_, idx) => (
+                    <RecommendationCard key={idx} loading />
+                ))
             ) : (
                 recommendations.map((item, idx) => (
                     <div

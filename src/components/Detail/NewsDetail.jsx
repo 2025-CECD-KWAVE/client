@@ -9,7 +9,11 @@ import {
     Meta,
     Body,
     MetaWrapper,
-    Thumbnail
+    Thumbnail,
+    SkeletonThumbnail,
+    SkeletonTitle,
+    SkeletonMeta,
+    SkeletonBody
 } from './NewsDetailStyle';
 import AudioController from './AudioController';
 import { useSearchParams } from 'react-router-dom';
@@ -21,11 +25,13 @@ export default function NewsDetail() {
     const newsId = searchParams.get('id');
 
     const [showController, setShowController] = useState(false);
+    const [loading, setLoading] = useState(true);
+
     const [title, setTitle] = useState('');
     const [publisher, setPublisher] = useState('');
     const [publishedAt, setPublishedAt] = useState('');
     const [body, setBody] = useState('');
-    const [thumbnailUrl, setThumbnailUrl] = useState(defaultThumbnail);
+    const [thumbnailUrl, setThumbnailUrl] = useState('');
 
     useEffect(() => {
         const fetchNewsDetail = async () => {
@@ -51,11 +57,13 @@ export default function NewsDetail() {
                 if (data.imageUrls && data.imageUrls.length > 0) {
                     setThumbnailUrl(data.imageUrls[0]);
                 } else {
-                    setThumbnailUrl(defaultThumbnail);
+                    setThumbnailUrl('');
                 }
 
             } catch (err) {
                 console.error('뉴스 상세 불러오기 실패:', err);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -64,9 +72,25 @@ export default function NewsDetail() {
         }
     }, [newsId]);
 
+    if (loading) {
+        return (
+            <div>
+                <SkeletonThumbnail />
+                <Wrapper>
+                    <SkeletonTitle />
+                    <SkeletonMeta />
+                    <SkeletonMeta />
+                    <SkeletonBody />
+                    <SkeletonBody />
+                    <SkeletonBody />
+                </Wrapper>
+            </div>
+        );
+    }
+
     return (
         <div>
-            <Thumbnail src={thumbnailUrl} alt="뉴스 썸네일" />
+            <Thumbnail src={thumbnailUrl || defaultThumbnail} alt="뉴스 썸네일" />
             <Wrapper>
                 <TitleRow>
                     <Title>{title}</Title>
@@ -84,10 +108,8 @@ export default function NewsDetail() {
                         <div>{publishedAt}</div>
                     </Meta>
                 </MetaWrapper>
-
                 <Body>{body}</Body>
             </Wrapper>
         </div>
-
     );
 }
