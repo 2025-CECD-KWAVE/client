@@ -82,7 +82,7 @@ export default function RecommendationSection() {
     return (
         <SectionWrapper>
             <SectionTitle>
-                Recommendation for : <Keyword>문화 &gt; 방송_연예</Keyword>
+                Recommendation for : <Keyword>K-Culture</Keyword>
             </SectionTitle>
 
             {!isLoggedIn ? (
