@@ -3,7 +3,7 @@ import styled from 'styled-components';
 export const CardContainer = styled.div`
   position: relative;
   width: 400px;
-  height: 260px;
+  height: 240px;
   border-radius: 16px;
   overflow: hidden;
   flex-shrink: 0;
@@ -26,13 +26,13 @@ export const Overlay = styled.div`
   display: flex;
 
   align-items: center;
-  font-size: 14px;
+  font-size: 12px;
   box-sizing: border-box;
 `;
 
 export const Title = styled.div`
   font-weight: bold;
-  font-size: 20px;
+  font-size: 18px;
   width: 300px;
   display: -webkit-box;
   -webkit-line-clamp: 2;         

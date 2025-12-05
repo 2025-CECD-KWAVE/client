@@ -7,6 +7,7 @@ import DiscoverPage from './pages/DiscoverPage/DiscoverPage';
 
 import './index.css'
 import LoginPage from './pages/Login/LoginPage';
+import ShortNewsPage from './pages/ShortNewsPage/ShortNewsPage';
 
 
 createRoot(document.getElementById('root')).render(
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/detail' element={<NewsDetailPage></NewsDetailPage>} />
         <Route path='/signin' element={<LoginPage></LoginPage>} />
         <Route path='/discover' element={<DiscoverPage></DiscoverPage>} />
+        <Route path='/short' element={<ShortNewsPage></ShortNewsPage>} />
       </Routes>
     </BrowserRouter>
 

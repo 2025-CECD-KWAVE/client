@@ -8,9 +8,10 @@ import {
     IconImage
 } from './FooterStyle';
 
-import globeIcon from '../../assets/language.png';
-import bookmarkIcon from '../../assets/bookmark.png';
+import fireIcon from '../../assets/fire.png';
+import videoIcon from '../../assets/clapperboard.png';
 import userIcon from '../../assets/person.png';
+import globeIcon from '../../assets/language.png';
 
 export default function Footer() {
     const navigate = useNavigate();
@@ -28,9 +29,15 @@ export default function Footer() {
                     </IconWrapper>
                 </FooterItem>
 
-                <FooterItem>
+                <FooterItem onClick={() => navigate('/short')}>
                     <IconWrapper>
-                        <IconImage src={bookmarkIcon} alt="Bookmark" />
+                        <IconImage src={fireIcon} alt="Fire" />
+                    </IconWrapper>
+                </FooterItem>
+
+                <FooterItem onClick={() => navigate('/video')}>
+                    <IconWrapper>
+                        <IconImage src={videoIcon} alt="videos" />
                     </IconWrapper>
                 </FooterItem>
 

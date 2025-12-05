@@ -11,7 +11,6 @@ export default function Header() {
             <CircleIconButton iconSrc={menuIcon} onClick={() => alert('메뉴 클릭')} />
             <RightButtonGroup>
                 <CircleIconButton iconSrc={searchIcon} onClick={() => alert('검색 클릭')} />
-                <CircleIconButton iconSrc={notificationIcon} onClick={() => alert('알림 클릭')} />
             </RightButtonGroup>
         </HeaderContainer>
     );
