@@ -8,6 +8,7 @@ import DiscoverPage from './pages/DiscoverPage/DiscoverPage';
 import './index.css'
 import LoginPage from './pages/Login/LoginPage';
 import ShortNewsPage from './pages/ShortNewsPage/ShortNewsPage';
+import ShortVideoPage from './pages/ShortVideoPage/ShortVideoPage';
 
 
 createRoot(document.getElementById('root')).render(
@@ -19,6 +20,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/signin' element={<LoginPage></LoginPage>} />
         <Route path='/discover' element={<DiscoverPage></DiscoverPage>} />
         <Route path='/short' element={<ShortNewsPage></ShortNewsPage>} />
+        <Route path='/video' element={<ShortVideoPage></ShortVideoPage>} />
       </Routes>
     </BrowserRouter>
 

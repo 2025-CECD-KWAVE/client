@@ -81,7 +81,7 @@ export default function Discover() {
     return (
         <SectionWrapper>
             <SectionTitle>
-                Discover More<Keyword> News Now</Keyword>
+                Discover More<Keyword> News</Keyword>
             </SectionTitle>
 
             {newsList.map((item, idx) => (
