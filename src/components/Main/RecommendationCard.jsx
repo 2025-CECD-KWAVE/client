@@ -13,7 +13,7 @@ import {
 
 import { useNavigate } from 'react-router-dom';
 
-export default function RecommendationCard({ imageSrc, title, source, time, newsId, loading = false }) {
+export default function RecommendationCard({ imageSrc, title, provider, time, newsId, loading = false }) {
     const navigate = useNavigate();
 
     const handleClick = () => {
@@ -41,7 +41,7 @@ export default function RecommendationCard({ imageSrc, title, source, time, news
                     <Content>
                         <Title>{title}</Title>
                         <MetaInfo>
-                            <Source>{source}</Source>
+                            <Source>{provider}</Source>
                             <Time>{time}</Time>
                         </MetaInfo>
                     </Content>

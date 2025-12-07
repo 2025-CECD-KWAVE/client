@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RecommendationCard from './RecommendationCard';
 import styled from 'styled-components';
-import sampleImg from '../../assets/sample.webp';
+import { apiFetch } from "../../api";
+
+import placeholder1 from '../../assets/placeholder1.png';
+import placeholder2 from '../../assets/placeholder2.png';
+import placeholder3 from '../../assets/placeholder3.png';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -22,49 +26,92 @@ const Keyword = styled.span`
   font-weight: bold;
 `;
 
-const Message = styled.div`
-  padding: 20px;
-  font-size: 18px;
-  color: #4a42f4;
-  font-weight: bold;
-  margin-left: 16px;
-`;
-
 export default function RecommendationSection() {
     const [recommendations, setRecommendations] = useState([]);
     const [isLoggedIn, setIsLoggedIn] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
+    const placeholders = [placeholder1, placeholder2, placeholder3];
+    const getRandomPlaceholder = () =>
+        placeholders[Math.floor(Math.random() * placeholders.length)];
+
     useEffect(() => {
         const token = localStorage.getItem('jwtToken');
 
         if (!token) {
             setIsLoggedIn(false);
-            setIsLoading(false);
+
+            const fetchLatestNews = async () => {
+                try {
+                    const response = await apiFetch(`${API_BASE_URL}/api/news/list`);
+                    const result = await response.json();
+
+                    const list = Array.isArray(result)
+                        ? result
+                        : Array.isArray(result.data)
+                            ? result.data
+                            : [];
+
+                    const mapped = list.slice(5).map(item => ({
+                        title: item.title,
+                        time: item.timeAgo || '방금 전',
+                        imageSrc: item.thumbnailUrl || getRandomPlaceholder(),
+                        newsId: item.newsId,
+                        provider: item.provider || 'Unknown'
+                    }));
+
+                    setRecommendations(mapped);
+                } catch (err) {
+                    console.error('뉴스 불러오기 실패:', err);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchLatestNews();
             return;
         }
 
         const fetchRecommendations = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/recommend`, {
+                const response = await apiFetch(`${API_BASE_URL}/api/news-recommend/news`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `${token}`,
+                        'Content-Type': 'application/json',
+                        Authorization: `${token}`,
                     },
+                    body: JSON.stringify({
+                        page: 0,
+                        size: 20
+                    }),
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const newsIds = result.newsIds?.map(n => n.newsId) || [];
+
+                if (newsIds.length === 0) {
+                    setRecommendations([]);
+                    return;
                 }
 
-                const data = await response.json();
+                const detailResponse = await apiFetch(`${API_BASE_URL}/api/news/list`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ids: newsIds }),
+                });
 
-                const mapped = (data.recommendedNews || []).map(item => ({
+                const detailData = await detailResponse.json();
+                const list = Array.isArray(detailData) ? detailData : [];
+
+                const mapped = list.map(item => ({
                     title: item.title,
                     time: item.timeAgo || '방금 전',
-                    imageSrc: item.thumbnailUrl || sampleImg,
-                    newsId: item.newsId
+                    imageSrc: item.thumbnailUrl || getRandomPlaceholder(),
+                    newsId: item.newsId,
+                    provider: item.provider || 'Unknown',
                 }));
 
                 setRecommendations(mapped);
@@ -85,10 +132,7 @@ export default function RecommendationSection() {
                 Recommendation for : <Keyword>K-Culture</Keyword>
             </SectionTitle>
 
-            {!isLoggedIn ? (
-                <Message>로그인 후에 맞춤형 뉴스를 추천 받아보세요</Message>
-            ) : isLoading ? (
-                // ✅ Skeleton 3개 보여주기
+            {isLoading ? (
                 Array.from({ length: 3 }).map((_, idx) => (
                     <RecommendationCard key={idx} loading />
                 ))
@@ -102,6 +146,7 @@ export default function RecommendationSection() {
                         <RecommendationCard
                             title={item.title}
                             time={item.time}
+                            provider={item.provider}
                             imageSrc={item.imageSrc}
                             newsId={item.newsId}
                         />

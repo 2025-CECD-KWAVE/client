@@ -1,6 +1,11 @@
 import { useRef, useState, useEffect } from 'react';
 import MainNewsCard from './MainNewsCard';
-import sampleImg from '../../assets/sample.webp';
+
+import placeholder1 from '../../assets/placeholder1.png';
+import placeholder2 from '../../assets/placeholder2.png';
+import placeholder3 from '../../assets/placeholder3.png';
+
+import { apiFetch } from "../../api";
 import {
     TrendingContainer,
     SectionTitle,
@@ -17,19 +22,27 @@ export default function TrendingSection() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [cards, setCards] = useState([]);
 
+    // 🔥 placeholder 이미지 리스트
+    const placeholders = [placeholder1, placeholder2, placeholder3];
+
+    // 🔥 랜덤 placeholder 반환 함수
+    const getRandomPlaceholder = () => {
+        return placeholders[Math.floor(Math.random() * placeholders.length)];
+    };
+
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/news/list`);
+                const response = await apiFetch(`${API_BASE_URL}/api/news/list`);
                 const data = await response.json();
 
                 const newsCards = data.map(item => ({
                     title: item.title,
-                    imageSrc: item.thumbnailUrl ? item.thumbnailUrl : sampleImg,
+                    imageSrc: item.thumbnailUrl ? item.thumbnailUrl : getRandomPlaceholder(),
                     newsId: item.newsId
                 }));
 
-                setCards(newsCards);
+                setCards(newsCards.slice(0, 5));
             } catch (err) {
                 console.error('뉴스 불러오기 실패:', err);
             }
@@ -40,7 +53,7 @@ export default function TrendingSection() {
 
     const handleScroll = () => {
         const scrollLeft = sliderRef.current.scrollLeft;
-        const cardWidth = 400 + 16; // 카드 너비 + gap
+        const cardWidth = 400 + 16;
         const index = Math.round(scrollLeft / cardWidth);
         setCurrentIndex(index);
     };

@@ -24,11 +24,18 @@ export const CardContainer = styled.div`
   padding: 12px;
   margin: 8px 16px;
   align-items: center;
+  transition: 0.25s ease;
+
+  &:hover {
+    background-color: #f0ecff;
+    box-shadow: 0 4px 12px rgba(105, 80, 255, 0.25);
+    transform: translateY(-2px);
+  }
 `;
 
 export const Thumbnail = styled.img`
-  width: 90px;
-  height: 90px;
+  width: 80px;
+  height: 80px;
   border-radius: 12px;
   object-fit: cover;
   margin-right: 12px;
@@ -36,31 +43,45 @@ export const Thumbnail = styled.img`
 
 export const Content = styled.div`
   flex: 1;
+  position: relative;
+  min-height: 70px;   
+  padding-bottom: 1px; 
 `;
 
 export const Title = styled.div`
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   margin-bottom: 8px;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;     /* 최대 3줄 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export const MetaInfo = styled.div`
   display: flex;
-  justify-content: space-between;
+  position: absolute;
+  align-items: center;       
   font-size: 12px;
   color: #666;
+  bottom: 0;
+  right: 0;
+  left:0;
 `;
 
 export const Source = styled.span`
   color: #6b4eff;
   font-weight: 500;
+  margin-left: 2px;
 `;
 
 export const Time = styled.span`
-  color: #888;
+  color: #6b4eff;
+  margin-left: auto;       
 `;
 
-// 🟦 Skeleton styles
 export const SkeletonThumbnail = styled.div`
   width: 100px;
   height: 80px;

@@ -1,5 +1,5 @@
 import volumeIcon from '../../assets/volume.png';
-import defaultThumbnail from '../../assets/sample.webp'; // 기본 이미지 추가
+import defaultThumbnail from '../../assets/placeholder1.png';
 import { useState, useEffect } from 'react';
 import {
     Wrapper,
@@ -17,6 +17,7 @@ import {
 } from './NewsDetailStyle';
 import AudioController from './AudioController';
 import { useSearchParams } from 'react-router-dom';
+import { apiFetch } from "../../api";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -36,7 +37,7 @@ export default function NewsDetail() {
     useEffect(() => {
         const fetchNewsDetail = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/news/${newsId}`);
+                const response = await apiFetch(`${API_BASE_URL}/api/news/${newsId}`);
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);

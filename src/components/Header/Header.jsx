@@ -1,17 +1,35 @@
 import CircleIconButton from './CircleIconButton';
 import { HeaderContainer, RightButtonGroup } from './HeaderStyle';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
-import menuIcon from '../../assets/menu.png';
+import languageIcon from '../../assets/language.png';
 import searchIcon from '../../assets/search.png';
-import notificationIcon from '../../assets/notifications.png';
+
+import LanguageModal from './LanguageModal';
 
 export default function Header() {
+    const navigate = useNavigate();
+    const [openModal, setOpenModal] = useState(false);
+
     return (
-        <HeaderContainer>
-            <CircleIconButton iconSrc={menuIcon} onClick={() => alert('메뉴 클릭')} />
-            <RightButtonGroup>
-                <CircleIconButton iconSrc={searchIcon} onClick={() => alert('검색 클릭')} />
-            </RightButtonGroup>
-        </HeaderContainer>
+        <>
+            <HeaderContainer>
+                <CircleIconButton
+                    iconSrc={languageIcon}
+                    onClick={() => setOpenModal(true)}
+                />
+
+                <RightButtonGroup>
+                    <CircleIconButton
+                        iconSrc={searchIcon}
+                        onClick={() => navigate('/discover')}
+                    />
+                </RightButtonGroup>
+            </HeaderContainer>
+
+            {/* 언어 선택 모달 */}
+            {openModal && <LanguageModal onClose={() => setOpenModal(false)} />}
+        </>
     );
 }
