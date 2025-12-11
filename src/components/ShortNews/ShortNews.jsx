@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
     Container,
@@ -16,11 +17,13 @@ import placeholder2 from "../../assets/placeholder2.png";
 import placeholder3 from "../../assets/placeholder3.png";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const APP_BASE = import.meta.env.VITE_APP_BASE || import.meta.env.APP_BASE;
 
 export default function ShortNews() {
     const [isLoading, setIsLoading] = useState(true);
     const [items, setItems] = useState([]);
     const containerRef = useRef(null);
+    const navigate = useNavigate();  // ← 추가됨
 
     const placeholders = [placeholder1, placeholder2, placeholder3];
     const getRandomPlaceholder = () =>
@@ -41,7 +44,7 @@ export default function ShortNews() {
                         : [];
 
                 const mapped = list.slice(0, 10).map(item => ({
-                    id: item.newsId || item.news_id,
+                    id: item.newsId,
                     title: item.title,
                     body: item.summary,
                     time: item.timeAgo,
@@ -49,8 +52,8 @@ export default function ShortNews() {
                 }));
 
                 setItems(mapped);
-            } catch (err) {
-                console.error(err);
+            } catch (e) {
+                console.error(e);
             } finally {
                 setIsLoading(false);
             }
@@ -58,17 +61,17 @@ export default function ShortNews() {
 
         const fetchLoggedIn = async () => {
             try {
-                const response = await fetch(
-                    `${API_BASE_URL}/api/news-recommend/news`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `${token}`,
-                        },
-                        body: JSON.stringify({ page: 0, size: 10 }),
-                    }
-                );
+                const response = await fetch(`${API_BASE_URL}/api/news-recommend/news`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `${token}`,
+                    },
+                    body: JSON.stringify({
+                        page: 0,
+                        size: 10
+                    }),
+                });
 
                 const result = await response.json();
                 const ids = result.newsIds?.map(n => n.newsId) || [];
@@ -78,23 +81,20 @@ export default function ShortNews() {
                     return;
                 }
 
-                const detailResponse = await fetch(
-                    `${API_BASE_URL}/api/news/list`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `${token}`,
-                        },
-                        body: JSON.stringify({ ids }),
-                    }
-                );
+                const detailResponse = await fetch(`${API_BASE_URL}/api/news/list`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `${token}`
+                    },
+                    body: JSON.stringify({ ids }),
+                });
 
                 const detailData = await detailResponse.json();
                 const list = Array.isArray(detailData) ? detailData : [];
 
                 const mapped = list.slice(0, 10).map(item => ({
-                    id: item.newsId || item.news_id,
+                    id: item.newsId,
                     title: item.title,
                     body: item.summary,
                     time: item.timeAgo,
@@ -102,8 +102,8 @@ export default function ShortNews() {
                 }));
 
                 setItems(mapped);
-            } catch (err) {
-                console.error(err);
+            } catch (e) {
+                console.error(e);
             } finally {
                 setIsLoading(false);
             }
@@ -166,57 +166,73 @@ export default function ShortNews() {
         };
     }, []);
 
+    useEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
+
     if (isLoading) {
         return <div style={{ height: "100vh", background: "#e0e0e0" }} />;
     }
 
-    return (
-        <div
-            ref={containerRef}
-            className="shorts-container"
-            style={{
-                height: "100vh",
-                overflowY: "scroll",
-                scrollSnapType: "y mandatory",
-                position: "relative",
-                touchAction: "none",
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-            }}
-        >
-            {items.map((data, i) => (
-                <section
-                    key={data.id || i}
-                    style={{
-                        height: "100vh",
-                        scrollSnapAlign: "start",
-                        overflow: "hidden",
-                        background: "#fff",
-                    }}
-                >
-                    <Container>
-                        <Header>Short News</Header>
-                        <Thumbnail
-                            src={data.thumbnail}
-                            alt="thumbnail"
-                        />
-                        <ContentWrapper>
-                            <NewsTitle>{data.title}</NewsTitle>
-                            <TimeText>{data.time}</TimeText>
-                            <Body>{data.body}</Body>
+    const goToDetail = (newsId) => {
+        if (!newsId) return;
+        navigate(`/detail?id=${encodeURIComponent(newsId)}`);
+    };
 
-                            <OriginalButton
-                                onClick={() =>
-                                    window.location.href =
-                                    `http://localhost:5173/detail?id=${data.id}`
-                                }
-                            >
-                                원문보기
-                            </OriginalButton>
-                        </ContentWrapper>
-                    </Container>
-                </section>
-            ))}
-        </div>
+    return (
+        <>
+            <Header>Short News</Header>
+            <div
+                ref={containerRef}
+                className="shorts-container"
+                style={{
+                    height: "100vh",
+                    overflowY: "scroll",
+                    scrollSnapType: "y mandatory",
+                    position: "relative",
+                    touchAction: "none",
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                }}
+            >
+                {items.map((data, i) => (
+                    <section
+                        key={i}
+                        style={{
+                            minHeight: "calc(100vh - 56px)",
+                            height: "auto",
+                            scrollSnapAlign: "start",
+                            overflow: "hidden",
+                            background: "#fff",
+                            display: "flex",
+                            flexDirection: "column",
+                        }}
+                    >
+                        <Container>
+                            <Thumbnail
+                                src={data.thumbnail}
+                                alt="thumbnail"
+                                onError={(e) => {
+                                    e.target.src = getRandomPlaceholder();
+                                }}
+                            />
+                            <ContentWrapper>
+                                <NewsTitle>{data.title}</NewsTitle>
+                                <TimeText>{data.time}</TimeText>
+                                <Body>{data.body}</Body>
+
+                                <OriginalButton onClick={() => goToDetail(data.id)}>
+                                    원문 보기
+                                </OriginalButton>
+                            </ContentWrapper>
+                        </Container>
+                    </section>
+                ))}
+            </div>
+        </>
     );
 }

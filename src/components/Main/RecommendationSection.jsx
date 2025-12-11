@@ -87,6 +87,10 @@ export default function RecommendationSection() {
                     }),
                 });
 
+                if (!response.ok) {
+                    throw new Error(`추천 API 실패: ${response.status}`);
+                }
+
                 const result = await response.json();
                 const newsIds = result.newsIds?.map(n => n.newsId) || [];
 
@@ -103,6 +107,10 @@ export default function RecommendationSection() {
                     body: JSON.stringify({ ids: newsIds }),
                 });
 
+                if (!detailResponse.ok) {
+                    throw new Error(`뉴스 상세 API 실패: ${detailResponse.status}`);
+                }
+
                 const detailData = await detailResponse.json();
                 const list = Array.isArray(detailData) ? detailData : [];
 
@@ -117,9 +125,11 @@ export default function RecommendationSection() {
                 setRecommendations(mapped);
             } catch (error) {
                 console.error('추천 뉴스 불러오기 실패:', error);
-                localStorage.removeItem('jwtToken');
 
+                localStorage.removeItem('jwtToken');
                 setIsLoggedIn(false);
+
+                window.location.reload();
             } finally {
                 setIsLoading(false);
             }

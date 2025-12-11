@@ -31,6 +31,19 @@ body {
   min-height: 100vh;
 }
 
+html,
+body {
+  -ms-overflow-style: none;
+  /* IE, Edge */
+  scrollbar-width: none;
+  /* Firefox */
+
+  &::-webkit-scrollbar {
+    /* Chrome, Safari, Opera */
+    display: none;
+  }
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
