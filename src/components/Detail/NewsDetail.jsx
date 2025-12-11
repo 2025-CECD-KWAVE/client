@@ -1,5 +1,6 @@
 import volumeIcon from '../../assets/volume.png';
 import defaultThumbnail from '../../assets/placeholder1.png';
+import backIcon from '../../assets/back.png';
 import { useState, useEffect } from 'react';
 import {
     Wrapper,
@@ -13,7 +14,9 @@ import {
     SkeletonThumbnail,
     SkeletonTitle,
     SkeletonMeta,
-    SkeletonBody
+    SkeletonBody,
+    ThumbnailWrapper,
+    BackButton
 } from './NewsDetailStyle';
 import AudioController from './AudioController';
 import { useSearchParams } from 'react-router-dom';
@@ -60,7 +63,6 @@ export default function NewsDetail() {
                 } else {
                     setThumbnailUrl('');
                 }
-
             } catch (err) {
                 console.error('뉴스 상세 불러오기 실패:', err);
             } finally {
@@ -89,9 +91,22 @@ export default function NewsDetail() {
         );
     }
 
+    const processedBodyForTts = body.replace(/([.!?])\s+/g, '$1\n\n');
+
+    const handleBack = () => {
+        window.history.back();
+    };
+
     return (
         <div>
-            <Thumbnail src={thumbnailUrl || defaultThumbnail} alt="뉴스 썸네일" />
+            <ThumbnailWrapper>
+                <Thumbnail src={thumbnailUrl || defaultThumbnail} alt="뉴스 썸네일" />
+                <BackButton
+                    src={backIcon}
+                    alt="back"
+                    onClick={handleBack}
+                />
+            </ThumbnailWrapper>
             <Wrapper>
                 <TitleRow>
                     <Title>{title}</Title>
@@ -103,7 +118,10 @@ export default function NewsDetail() {
                         onClick={() => setShowController(prev => !prev)}
                         style={{ cursor: 'pointer' }}
                     />
-                    {showController && <AudioController text={body.replace(/([.!?])\s+/g, '$1\n\n')} />}
+                    <AudioController
+                        text={processedBodyForTts}
+                        hidden={!showController}
+                    />
                     <Meta>
                         <div>{publisher}</div>
                         <div>{publishedAt}</div>

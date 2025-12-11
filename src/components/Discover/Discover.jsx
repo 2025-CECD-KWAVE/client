@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import RecommendationCard from '../Main/RecommendationCard';
 import sampleImg from '../../assets/placeholder1.png';
 import { apiFetch } from "../../api";
+
 import {
     SkeletonCardContainer,
     SkeletonThumbnail,
@@ -31,10 +32,9 @@ export default function Discover() {
     const loader = useRef(null);
 
     const fetchNews = useCallback(async () => {
-        if (searchKeyword) return; // 검색 중이면 기본 로드 X
+        if (searchKeyword) return;
 
         setLoading(true);
-
         try {
             const response = await apiFetch(`${API_BASE_URL}/api/news/list?page=${page}`);
             if (!response.ok) throw new Error();
@@ -51,7 +51,7 @@ export default function Discover() {
             }));
 
             setNewsList(prev => [...prev, ...mapped]);
-        } catch (error) {
+        } catch {
             setHasMore(false);
         } finally {
             setLoading(false);
@@ -77,7 +77,6 @@ export default function Discover() {
 
             const data = await res.json();
 
-            // 🔥 relevance 높은 순으로 정렬
             const sortedResults = (data.results || [])
                 .sort((a, b) => b.relevance - a.relevance);
 
@@ -97,7 +96,11 @@ export default function Discover() {
 
             const detailData = await detailRes.json();
 
-            const mapped = detailData.map(item => ({
+            const sortedDetailData = ids.map(id =>
+                detailData.find(item => item.newsId === id)
+            );
+
+            const mapped = sortedDetailData.map(item => ({
                 title: item.title,
                 time: item.timeAgo || '방금 전',
                 provider: item.provider || "언론사",
@@ -106,8 +109,7 @@ export default function Discover() {
             }));
 
             setNewsList(mapped);
-        } catch (err) {
-            console.error(err);
+        } catch {
         } finally {
             setLoading(false);
         }

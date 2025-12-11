@@ -8,6 +8,7 @@ import {
     NewsTitle,
     TimeText,
     Body,
+    OriginalButton
 } from "./ShortNewsStyle";
 
 import placeholder1 from "../../assets/placeholder1.png";
@@ -40,6 +41,7 @@ export default function ShortNews() {
                         : [];
 
                 const mapped = list.slice(0, 10).map(item => ({
+                    id: item.newsId || item.news_id,
                     title: item.title,
                     body: item.summary,
                     time: item.timeAgo,
@@ -56,17 +58,17 @@ export default function ShortNews() {
 
         const fetchLoggedIn = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/news-recommend/news`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `${token}`,
-                    },
-                    body: JSON.stringify({
-                        page: 0,
-                        size: 10
-                    }),
-                });
+                const response = await fetch(
+                    `${API_BASE_URL}/api/news-recommend/news`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `${token}`,
+                        },
+                        body: JSON.stringify({ page: 0, size: 10 }),
+                    }
+                );
 
                 const result = await response.json();
                 const ids = result.newsIds?.map(n => n.newsId) || [];
@@ -76,19 +78,23 @@ export default function ShortNews() {
                     return;
                 }
 
-                const detailResponse = await fetch(`${API_BASE_URL}/api/news/list`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `${token}`
-                    },
-                    body: JSON.stringify({ ids }),
-                });
+                const detailResponse = await fetch(
+                    `${API_BASE_URL}/api/news/list`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `${token}`,
+                        },
+                        body: JSON.stringify({ ids }),
+                    }
+                );
 
                 const detailData = await detailResponse.json();
                 const list = Array.isArray(detailData) ? detailData : [];
 
                 const mapped = list.slice(0, 10).map(item => ({
+                    id: item.newsId || item.news_id,
                     title: item.title,
                     body: item.summary,
                     time: item.timeAgo,
@@ -107,7 +113,6 @@ export default function ShortNews() {
         else fetchLoggedIn();
     }, []);
 
-    // Swipe navigation logic
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
@@ -181,7 +186,7 @@ export default function ShortNews() {
         >
             {items.map((data, i) => (
                 <section
-                    key={i}
+                    key={data.id || i}
                     style={{
                         height: "100vh",
                         scrollSnapAlign: "start",
@@ -194,14 +199,20 @@ export default function ShortNews() {
                         <Thumbnail
                             src={data.thumbnail}
                             alt="thumbnail"
-                            onError={(e) => {
-                                e.target.src = getRandomPlaceholder();
-                            }}
                         />
                         <ContentWrapper>
                             <NewsTitle>{data.title}</NewsTitle>
                             <TimeText>{data.time}</TimeText>
                             <Body>{data.body}</Body>
+
+                            <OriginalButton
+                                onClick={() =>
+                                    window.location.href =
+                                    `http://localhost:5173/detail?id=${data.id}`
+                                }
+                            >
+                                원문보기
+                            </OriginalButton>
                         </ContentWrapper>
                     </Container>
                 </section>

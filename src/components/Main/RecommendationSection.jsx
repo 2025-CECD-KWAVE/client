@@ -117,6 +117,8 @@ export default function RecommendationSection() {
                 setRecommendations(mapped);
             } catch (error) {
                 console.error('추천 뉴스 불러오기 실패:', error);
+                localStorage.removeItem('jwtToken');
+
                 setIsLoggedIn(false);
             } finally {
                 setIsLoading(false);

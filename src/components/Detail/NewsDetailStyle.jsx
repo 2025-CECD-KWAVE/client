@@ -26,6 +26,7 @@ export const VolumeIcon = styled.img`
 export const MetaWrapper = styled.div`
   display: flex;
   padding: 10px;
+  margin-top: 14px;
   justify-content: space-between;
 `;
 
@@ -45,11 +46,25 @@ export const Body = styled.p`
   white-space: pre-wrap;
 `;
 
+export const ThumbnailWrapper = styled.div`
+  position: relative;
+`;
+
 export const Thumbnail = styled.img`
   width: 100%;
   height: 500px;
   object-fit: cover;
   margin-bottom: 10px;
+`;
+
+export const BackButton = styled.img`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  z-index: 1;
 `;
 
 export const SkeletonBox = styled.div`

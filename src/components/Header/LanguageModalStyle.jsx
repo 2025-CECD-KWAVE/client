@@ -16,16 +16,36 @@ export const Overlay = styled.div`
 
 export const ModalBox = styled.div`
   width: 260px;
+  max-height: 420px;       
   background: white;
   padding: 24px;
   border-radius: 16px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
 `;
 
 export const Title = styled.div`
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 16px;
+`;
+
+export const ButtonScrollArea = styled.div`
+  width: 100%;
+  max-height: 260px;     /* 버튼 영역 자체 높이 제한 */
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding-right: 4px;
+
+  /* 스크롤바 스타일(선택) */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #c7c7c7;
+    border-radius: 6px;
+  }
 `;
 
 export const Button = styled.button`
@@ -46,7 +66,8 @@ export const Button = styled.button`
 
 export const CloseButton = styled(Button)`
   background: #ddd;
-  margin-top: 10px;
+  margin-top: auto; 
+  margin-bottom: 0;
 
   &:hover {
     background: #ccc;
