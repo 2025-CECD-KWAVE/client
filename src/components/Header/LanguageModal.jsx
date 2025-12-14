@@ -54,7 +54,7 @@ export default function LanguageModal({ onClose }) {
     return (
         <Overlay onClick={onClose}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
-                <Title>언어 선택</Title>
+                <Title>Select Language</Title>
 
                 <ButtonScrollArea>
                     {LANGUAGES.map((lang) => (

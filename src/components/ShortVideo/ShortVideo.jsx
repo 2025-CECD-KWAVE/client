@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import {
     Container,
@@ -11,9 +11,9 @@ import {
     VideoTitle,
     TimeText,
     GuideText,
-    VoicePanel,
-    VoiceButton,
-    VoiceImage
+    ProfileRow,
+    ProfileAvatar,
+    ProfileRing,
 } from "./ShortVideoStyle";
 
 import chaewonImg from "../../assets/chaewon.webp";
@@ -23,7 +23,6 @@ import iuImg from "../../assets/iu.webp";
 
 import concertChaewon from "../../assets/concert/chaewon.mp4";
 import concertJongguk from "../../assets/concert/jongguk.mp4";
-
 import awardJongguk from "../../assets/award/jongguk.mp4";
 
 import minaChaewon from "../../assets/mina/chaewon.mp4";
@@ -44,6 +43,7 @@ import weiIu from "../../assets/wei/iu.mp4";
 export default function ShortVideo() {
     const containerRef = useRef(null);
     const navigate = useNavigate();
+    const location = useLocation();
 
     const videoList = [
         {
@@ -84,6 +84,19 @@ export default function ShortVideo() {
     ];
 
     useEffect(() => {
+        if ("scrollRestoration" in window.history) {
+            window.history.scrollRestoration = "manual";
+        }
+
+        const container = containerRef.current;
+        if (!container) return;
+
+        requestAnimationFrame(() => {
+            container.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        });
+    }, [location.pathname]);
+
+    useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
 
@@ -95,6 +108,7 @@ export default function ShortVideo() {
         const onPointerDown = (e) => {
             isDragging = true;
             startY = e.clientY;
+            currentY = e.clientY;
             startTime = Date.now();
         };
 
@@ -113,20 +127,17 @@ export default function ShortVideo() {
 
             if (Math.abs(delta) < threshold || timeDiff < minSwipeTime) {
                 isDragging = false;
-                startY = 0;
-                currentY = 0;
                 return;
             }
 
-            if (delta > threshold) {
-                container.scrollBy({ top: -window.innerHeight, behavior: "smooth" });
-            } else if (delta < -threshold) {
-                container.scrollBy({ top: window.innerHeight, behavior: "smooth" });
-            }
+            const step = container.clientHeight;
+
+            container.scrollBy({
+                top: delta > 0 ? -step : step,
+                behavior: "smooth",
+            });
 
             isDragging = false;
-            startY = 0;
-            currentY = 0;
         };
 
         container.addEventListener("pointerdown", onPointerDown);
@@ -160,21 +171,18 @@ export default function ShortVideo() {
             <div
                 ref={containerRef}
                 style={{
-                    height: "100vh",
+                    height: "calc(100dvh - 56px)",
                     overflowY: "scroll",
                     scrollSnapType: "y mandatory",
                     position: "relative",
-                    touchAction: "none",
+                    touchAction: "pan-y",
                     scrollbarWidth: "none",
                     msOverflowStyle: "none",
+                    background: "#000",
                 }}
             >
                 {videoList.map((item, idx) => (
-                    <VideoCard
-                        key={idx}
-                        item={item}
-                        goToDetail={goToDetail}
-                    />
+                    <VideoCard key={idx} item={item} goToDetail={goToDetail} />
                 ))}
             </div>
         </>
@@ -186,26 +194,29 @@ function VideoCard({ item, goToDetail }) {
     const [thumbnail, setThumbnail] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const getSrcForVoice = (videoItem, voiceKey) => {
-        const map = {
-            chaewon: "srcChaewon",
-            jongguk: "srcJongguk",
-            winter: "srcWinter",
-            iu: "srcIu",
-        };
-        const key = map[voiceKey];
-        if (key && videoItem[key]) return videoItem[key];
-        return (
-            videoItem.srcChaewon ||
-            videoItem.srcJongguk ||
-            videoItem.srcWinter ||
-            videoItem.srcIu
-        );
-    };
-
-    const selectedSrc = getSrcForVoice(item, selectedVoice);
+    const profiles = [
+        { key: "chaewon", img: chaewonImg, label: "AI 채원", src: item.srcChaewon },
+        { key: "jongguk", img: jonggukImg, label: "AI 종국", src: item.srcJongguk },
+        { key: "winter", img: winterImg, label: "AI 윈터", src: item.srcWinter },
+        { key: "iu", img: iuImg, label: "AI 아이유", src: item.srcIu },
+    ].filter((p) => Boolean(p.src));
 
     useEffect(() => {
+        if (!profiles.some((p) => p.key === selectedVoice)) {
+            setSelectedVoice(profiles[0]?.key ?? "chaewon");
+        }
+    }, [item]);
+
+    const selectedSrc =
+        profiles.find((p) => p.key === selectedVoice)?.src || profiles[0]?.src;
+
+    useEffect(() => {
+        setIsPlaying(false);
+    }, [selectedSrc]);
+
+    useEffect(() => {
+        if (!selectedSrc) return;
+
         const video = document.createElement("video");
         video.src = selectedSrc;
         video.currentTime = 1;
@@ -229,55 +240,35 @@ function VideoCard({ item, goToDetail }) {
     return (
         <section
             style={{
-                minHeight: "calc(100vh - 56px)",
-                height: "auto",
+                height: "calc(100dvh - 56px)",
                 scrollSnapAlign: "start",
                 overflow: "hidden",
-                background: "#fff",
+                background: "#000",
                 display: "flex",
                 flexDirection: "column",
             }}
         >
             <Container>
                 <VideoWrapper onClick={() => setIsPlaying(true)}>
-                    {!isPlaying && <Thumbnail src={thumbnail} />}
+                    {!isPlaying && thumbnail && <Thumbnail src={thumbnail} />}
                     {isPlaying && <VideoElement src={selectedSrc} autoPlay controls />}
                 </VideoWrapper>
 
                 <ContentWrapper>
-                    <VoicePanel>
-                        <VoiceButton
-                            active={selectedVoice === "chaewon"}
-                            onClick={() => setSelectedVoice("chaewon")}
-                        >
-                            <VoiceImage src={chaewonImg} />
-                            AI 채원
-                        </VoiceButton>
-
-                        <VoiceButton
-                            active={selectedVoice === "jongguk"}
-                            onClick={() => setSelectedVoice("jongguk")}
-                        >
-                            <VoiceImage src={jonggukImg} />
-                            AI 종국
-                        </VoiceButton>
-
-                        <VoiceButton
-                            active={selectedVoice === "winter"}
-                            onClick={() => setSelectedVoice("winter")}
-                        >
-                            <VoiceImage src={winterImg} />
-                            AI 윈터
-                        </VoiceButton>
-
-                        <VoiceButton
-                            active={selectedVoice === "iu"}
-                            onClick={() => setSelectedVoice("iu")}
-                        >
-                            <VoiceImage src={iuImg} />
-                            AI 아이유
-                        </VoiceButton>
-                    </VoicePanel>
+                    {profiles.length > 0 && (
+                        <ProfileRow>
+                            {profiles.map((p) => (
+                                <ProfileAvatar
+                                    key={p.key}
+                                    aria-pressed={selectedVoice === p.key}
+                                    onClick={() => setSelectedVoice(p.key)}
+                                >
+                                    <ProfileRing $active={selectedVoice === p.key} />
+                                    <img src={p.img} alt={p.label} />
+                                </ProfileAvatar>
+                            ))}
+                        </ProfileRow>
+                    )}
 
                     <VideoTitle>{item.title}</VideoTitle>
                     <TimeText>{item.time}</TimeText>
@@ -287,3 +278,9 @@ function VideoCard({ item, goToDetail }) {
         </section>
     );
 }
+
+
+
+
+
+

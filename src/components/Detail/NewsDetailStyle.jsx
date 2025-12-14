@@ -27,7 +27,16 @@ export const MetaWrapper = styled.div`
   display: flex;
   padding: 10px;
   margin-top: 14px;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+`;
+
+export const MetaRight = styled.div`
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 `;
 
 export const Meta = styled.div`
@@ -38,6 +47,46 @@ export const Meta = styled.div`
   color: #666;
   margin-top: 4px;
 `;
+
+export const LikeButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  outline: none;
+  box-shadow: none;
+
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+`;
+
+export const LikeIcon = styled.svg`
+  width: 20px;
+  height: 20px;
+  fill: ${({ $active }) => ($active ? '#ff3b30' : 'none')};
+  stroke: ${({ $active }) => ($active ? '#ff3b30' : '#9aa0a6')};
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+`;
+
 
 export const Body = styled.p`
   font-size: 14px;

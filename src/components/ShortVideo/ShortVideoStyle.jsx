@@ -4,8 +4,8 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 0;
   height: 100%;
+  background: #000;
 `;
 
 export const Header = styled.h1`
@@ -28,7 +28,8 @@ export const VideoWrapper = styled.div`
   max-height: 520px;
   background: #000;
   overflow: hidden;
-  margin-top: 80px;
+  margin-top: 120px;
+  margin-bottom: 80px;
 `;
 
 export const Thumbnail = styled.img`
@@ -45,57 +46,66 @@ export const VideoElement = styled.video`
 `;
 
 export const ContentWrapper = styled.div`
-  padding: 20px 16px 40px;
+  padding: 0px 16px 48px;
   display: flex;
   flex-direction: column;
   flex: 1;
   box-sizing: border-box;
+  align-items: flex-end;
+  text-align: right;
+  background: #000;
 `;
 
-export const VoicePanel = styled.div`
-  width: 100%;
+export const ProfileRow = styled.div`
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 6px;
-  gap: 12px;
-`;
-
-export const VoiceButton = styled.button`
-  background: ${(p) => (p.active ? "#ece7ff" : "#ffffff")};
-  border: ${(p) => (p.active ? "2px solid #6b5bff" : "1px solid #ccc")};
-  width: 70px;
-  height: 85px;
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  gap: 10px;
   align-items: center;
+  margin-bottom: 16px;
+  justify-content: flex-end;
+`;
+
+export const ProfileAvatar = styled.button`
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   cursor: pointer;
-  font-size: 11px;
-  color: ${(p) => (p.active ? "#6b5bff" : "#555")};
-  transition: 0.15s ease;
+  border-radius: 999px;
+  overflow: hidden;
+
+  outline: none;
+  box-shadow: none;
+
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
+
+  img {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    object-fit: cover;
+    display: block;
+  }
 `;
 
-export const VoiceImage = styled.img`
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 6px;
-`;
+export const ProfileRing = styled.span`
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  pointer-events: none;
 
-export const TimeText = styled.div`
-  font-size: 13px;
-  color: #4b74ff;
-  text-align: right;
-  margin-top: 8px;
-  margin-bottom: 4px;
-`;
-
-export const GuideText = styled.div`
-  font-size: 13px;
-  color: #666;
-  text-align: right;
+  box-shadow: ${({ $active }) =>
+    $active ? "0 0 0 3px #463fd4 inset" : "none"};
 `;
 
 export const VideoTitle = styled.h2`
@@ -103,6 +113,20 @@ export const VideoTitle = styled.h2`
   font-weight: 700;
   margin-top: 12px;
   margin-bottom: 8px;
-  color: #111;
+  color: #ffffff;
+  text-align: right;
+`;
+
+export const TimeText = styled.div`
+  font-size: 13px;
+  color: #bdbdbd;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  text-align: right;
+`;
+
+export const GuideText = styled.div`
+  font-size: 13px;
+  color: #9e9e9e;
   text-align: right;
 `;

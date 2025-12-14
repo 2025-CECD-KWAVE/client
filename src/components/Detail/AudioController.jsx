@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from "react";
 import {
     ControllerWrapper,
     TitleRow,
@@ -10,12 +10,12 @@ import {
     LoadingImage,
     ControlRow,
     LogWrapper,
-    LoadingOverlay
-} from './AudioControllerStyle';
+    LoadingOverlay,
+} from "./AudioControllerStyle";
 
-import playIcon from '../../assets/play.png';
-import pauseIcon from '../../assets/pause.png';
-import spinnerIcon from '../../assets/spinner.gif';
+import playIcon from "../../assets/play.png";
+import pauseIcon from "../../assets/pause.png";
+import spinnerIcon from "../../assets/spinner.gif";
 import chaewonImg from "../../assets/chaewon.webp";
 import jonggukImg from "../../assets/jongguk.webp";
 import winterImg from "../../assets/winter.jpg";
@@ -39,14 +39,65 @@ const VOICE_ID_MAP = {
 
 const STORAGE_KEY = "audioControllerState";
 
+function chunkText(text, maxLen = 150) {
+    const clean = text.replace(/\([^)]*\)/g, "").trim();
+    if (!clean) return [];
+    const sentences = clean.split(/(?<=[.!?。？！])\s+|\n+/).filter(Boolean);
+    const chunks = [];
+    let buf = "";
+    for (const s of sentences) {
+        if (!buf) {
+            buf = s;
+            continue;
+        }
+        if ((buf + " " + s).length <= maxLen) {
+            buf = buf + " " + s;
+        } else {
+            chunks.push(buf.trim());
+            buf = s;
+        }
+    }
+    if (buf.trim()) chunks.push(buf.trim());
+    const finalChunks = [];
+    for (const c of chunks) {
+        if (c.length <= maxLen) finalChunks.push(c);
+        else {
+            for (let i = 0; i < c.length; i += maxLen) finalChunks.push(c.slice(i, i + maxLen));
+        }
+    }
+    return finalChunks;
+}
+
+async function runWithConcurrency(taskFactories, concurrency = 4) {
+    let i = 0;
+    const results = new Array(taskFactories.length);
+    async function worker() {
+        while (i < taskFactories.length) {
+            const idx = i++;
+            results[idx] = await taskFactories[idx]();
+        }
+    }
+    const workers = Array.from({ length: Math.min(concurrency, taskFactories.length) }, worker);
+    await Promise.all(workers);
+    return results;
+}
+
 export default function AudioController({ text, hidden }) {
     const [selectedVoice, setSelectedVoice] = useState("chaewon");
     const [logMessages, setLogMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const audioRef = useRef(null);
-    const audioUrlRef = useRef(null);
+    const abortRef = useRef(null);
+    const isStoppedRef = useRef(false);
+
+    const chunksRef = useRef([]);
+    const blobsRef = useRef([]);
+    const waitersRef = useRef([]);
+    const playLoopPromiseRef = useRef(null);
+
+    const playingAudioRef = useRef(null);
+    const playingUrlRef = useRef(null);
 
     useEffect(() => {
         try {
@@ -62,88 +113,186 @@ export default function AudioController({ text, hidden }) {
 
     useEffect(() => {
         try {
-            const stateToSave = {
-                selectedVoice,
-                logMessages,
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                    selectedVoice,
+                    logMessages,
+                })
+            );
         } catch (e) {
             console.error("AudioController save state error:", e);
         }
     }, [selectedVoice, logMessages]);
 
-    const cleanupAudio = () => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current = null;
+    const cleanupAudio = ({ keepLoading = false } = {}) => {
+        isStoppedRef.current = true;
+
+        if (abortRef.current) {
+            abortRef.current.abort();
+            abortRef.current = null;
         }
-        if (audioUrlRef.current) {
-            URL.revokeObjectURL(audioUrlRef.current);
-            audioUrlRef.current = null;
+
+        if (playingAudioRef.current) {
+            playingAudioRef.current.onended = null;
+            playingAudioRef.current.pause();
+            playingAudioRef.current.src = "";
+            playingAudioRef.current = null;
         }
+
+        if (playingUrlRef.current) {
+            URL.revokeObjectURL(playingUrlRef.current);
+            playingUrlRef.current = null;
+        }
+
+        chunksRef.current = [];
+        blobsRef.current = [];
+        waitersRef.current = [];
+        playLoopPromiseRef.current = null;
+
         setIsPlaying(false);
+        if (!keepLoading) setIsLoading(false);
     };
 
-    const fetchAndCreateAudio = async () => {
-        setIsLoading(true);
-        setLogMessages([]);
-        cleanupAudio();
+    const fetchChunkAudio = async ({ voiceId, chunkTextValue, signal }) => {
+        const res = await fetch(`${API_BASE_URL}/api/voice`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ voiceId, text: chunkTextValue }),
+            signal,
+        });
+        if (!res.ok) throw new Error("오디오 요청 실패");
+        const arrayBuffer = await res.arrayBuffer();
+        return new Blob([arrayBuffer], { type: "audio/mpeg" });
+    };
 
-        const cleanText = text.replace(/\([^)]*\)/g, "").trim();
-        if (!cleanText) {
+    const waitForBlob = (idx) => {
+        const existing = blobsRef.current[idx];
+        if (existing) return Promise.resolve(existing);
+        return new Promise((resolve, reject) => {
+            waitersRef.current[idx] = { resolve, reject };
+        });
+    };
+
+    const playBlob = async (blob) => {
+        if (isStoppedRef.current) return;
+
+        if (playingAudioRef.current) {
+            playingAudioRef.current.onended = null;
+            playingAudioRef.current.pause();
+            playingAudioRef.current.src = "";
+            playingAudioRef.current = null;
+        }
+        if (playingUrlRef.current) {
+            URL.revokeObjectURL(playingUrlRef.current);
+            playingUrlRef.current = null;
+        }
+
+        const url = URL.createObjectURL(blob);
+        playingUrlRef.current = url;
+        const audio = new Audio(url);
+        playingAudioRef.current = audio;
+
+        await audio.play();
+        setIsPlaying(true);
+
+        await new Promise((resolve) => {
+            audio.onended = resolve;
+        });
+    };
+
+    const startPlayLoopOnce = (total) => {
+        if (playLoopPromiseRef.current) return playLoopPromiseRef.current;
+
+        playLoopPromiseRef.current = (async () => {
+            for (let i = 0; i < total; i++) {
+                if (isStoppedRef.current) return;
+                const blob = await waitForBlob(i);
+                if (isStoppedRef.current) return;
+                await playBlob(blob);
+            }
+            if (!isStoppedRef.current) {
+                setIsPlaying(false);
+                setIsLoading(false);
+                setLogMessages(["재생 완료"]);
+            }
+        })();
+
+        return playLoopPromiseRef.current;
+    };
+
+    const startStreamingPlayback = async () => {
+        setLogMessages([]);
+        setIsLoading(true);
+        cleanupAudio({ keepLoading: true });
+        isStoppedRef.current = false;
+
+        const chunks = chunkText(text, 150);
+        if (chunks.length === 0) {
             setIsLoading(false);
             setLogMessages(["읽을 텍스트가 없습니다."]);
             return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/voice`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                voiceId: VOICE_ID_MAP[selectedVoice],
-                text: cleanText
-            })
+        chunksRef.current = chunks;
+        blobsRef.current = new Array(chunks.length);
+        waitersRef.current = new Array(chunks.length);
+
+        const controller = new AbortController();
+        abortRef.current = controller;
+
+        setLogMessages([`총 ${chunks.length}개 조각으로 합성 중...`]);
+
+        const voiceId = VOICE_ID_MAP[selectedVoice];
+
+        startPlayLoopOnce(chunks.length);
+
+        const taskFactories = chunks.map((c, idx) => async () => {
+            const blob = await fetchChunkAudio({
+                voiceId,
+                chunkTextValue: c,
+                signal: controller.signal,
+            });
+
+            blobsRef.current[idx] = blob;
+            const waiter = waitersRef.current[idx];
+            if (waiter?.resolve) waiter.resolve(blob);
+
+            if (idx === 0) {
+                setIsLoading(false);
+                setLogMessages(["합성 시작! 재생을 시작합니다."]);
+            }
+
+            return true;
         });
 
-        if (!response.ok) {
-            setIsLoading(false);
-            throw new Error("오디오 요청 실패");
+        try {
+            await runWithConcurrency(taskFactories, 4);
+        } catch (e) {
+            if (e?.name === "AbortError") return;
+            console.error("AudioController error:", e);
+            cleanupAudio();
+            setLogMessages(["오디오 재생 중 오류가 발생했습니다."]);
         }
-
-        const arrayBuffer = await response.arrayBuffer();
-        const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
-        const url = URL.createObjectURL(blob);
-        audioUrlRef.current = url;
-
-        const audio = new Audio(url);
-        audioRef.current = audio;
-
-        audio.onended = () => {
-            setIsPlaying(false);
-        };
-
-        setIsLoading(false);
-        setLogMessages(["합성 완료! 재생을 시작합니다."]);
-
-        await audio.play();
-        setIsPlaying(true);
     };
 
     const handlePlayPause = async () => {
         try {
             if (!text || text.length === 0 || isLoading) return;
 
-            if (!audioRef.current) {
-                await fetchAndCreateAudio();
+            if (!playingAudioRef.current && !isPlaying) {
+                await startStreamingPlayback();
                 return;
             }
 
-            if (audioRef.current.paused) {
-                await audioRef.current.play();
-                setIsPlaying(true);
-            } else {
-                audioRef.current.pause();
-                setIsPlaying(false);
+            if (playingAudioRef.current) {
+                if (playingAudioRef.current.paused) {
+                    await playingAudioRef.current.play();
+                    setIsPlaying(true);
+                } else {
+                    playingAudioRef.current.pause();
+                    setIsPlaying(false);
+                }
             }
         } catch (err) {
             console.error("AudioController error:", err);
@@ -175,52 +324,33 @@ export default function AudioController({ text, hidden }) {
 
             <ControlRow>
                 <ControlButton onClick={handlePlayPause} disabled={isLoading}>
-                    <IconImage
-                        src={isPlaying ? pauseIcon : playIcon}
-                        isPlay={!isPlaying}
-                    />
+                    <IconImage src={isPlaying ? pauseIcon : playIcon} isPlay={!isPlaying} />
                 </ControlButton>
 
                 <VoicePanel>
-                    <VoiceButton
-                        active={selectedVoice === "chaewon"}
-                        onClick={() => handleSelectVoice("chaewon")}
-                    >
+                    <VoiceButton active={selectedVoice === "chaewon"} onClick={() => handleSelectVoice("chaewon")}>
                         <VoiceImage src={chaewonImg} />
                         AI 채원
                     </VoiceButton>
 
-                    <VoiceButton
-                        active={selectedVoice === "jongguk"}
-                        onClick={() => handleSelectVoice("jongguk")}
-                    >
+                    <VoiceButton active={selectedVoice === "jongguk"} onClick={() => handleSelectVoice("jongguk")}>
                         <VoiceImage src={jonggukImg} />
                         AI 종국
                     </VoiceButton>
 
-                    <VoiceButton
-                        active={selectedVoice === "winter"}
-                        onClick={() => handleSelectVoice("winter")}
-                    >
+                    <VoiceButton active={selectedVoice === "winter"} onClick={() => handleSelectVoice("winter")}>
                         <VoiceImage src={winterImg} />
                         AI 윈터
                     </VoiceButton>
 
-                    <VoiceButton
-                        active={selectedVoice === "iu"}
-                        onClick={() => handleSelectVoice("iu")}
-                    >
+                    <VoiceButton active={selectedVoice === "iu"} onClick={() => handleSelectVoice("iu")}>
                         <VoiceImage src={iuImg} />
                         AI 아이유
                     </VoiceButton>
                 </VoicePanel>
             </ControlRow>
 
-            <LogWrapper>
-                {logMessages.map((msg, idx) => (
-                    <div key={idx}>{msg}</div>
-                ))}
-            </LogWrapper>
+            <LogWrapper></LogWrapper>
         </ControllerWrapper>
     );
 }

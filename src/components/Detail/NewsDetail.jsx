@@ -16,11 +16,14 @@ import {
     SkeletonMeta,
     SkeletonBody,
     ThumbnailWrapper,
-    BackButton
+    BackButton,
+    LikeButton,
+    LikeIcon,
+    MetaRight
 } from './NewsDetailStyle';
 import AudioController from './AudioController';
 import { useSearchParams } from 'react-router-dom';
-import { apiFetch } from "../../api";
+import { apiFetch } from '../../api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -36,6 +39,8 @@ export default function NewsDetail() {
     const [publishedAt, setPublishedAt] = useState('');
     const [body, setBody] = useState('');
     const [thumbnailUrl, setThumbnailUrl] = useState('');
+
+    const [liked, setLiked] = useState(false);
 
     useEffect(() => {
         const fetchNewsDetail = async () => {
@@ -62,6 +67,10 @@ export default function NewsDetail() {
                     setThumbnailUrl(data.imageUrls[0]);
                 } else {
                     setThumbnailUrl('');
+                }
+
+                if (typeof data.liked === 'boolean') {
+                    setLiked(data.liked);
                 }
             } catch (err) {
                 console.error('뉴스 상세 불러오기 실패:', err);
@@ -97,20 +106,22 @@ export default function NewsDetail() {
         window.history.back();
     };
 
+    const toggleLike = () => {
+        setLiked(prev => !prev);
+    };
+
     return (
         <div>
             <ThumbnailWrapper>
                 <Thumbnail src={thumbnailUrl || defaultThumbnail} alt="뉴스 썸네일" />
-                <BackButton
-                    src={backIcon}
-                    alt="back"
-                    onClick={handleBack}
-                />
+                <BackButton src={backIcon} alt="back" onClick={handleBack} />
             </ThumbnailWrapper>
+
             <Wrapper>
                 <TitleRow>
                     <Title>{title}</Title>
                 </TitleRow>
+
                 <MetaWrapper>
                     <VolumeIcon
                         src={volumeIcon}
@@ -118,15 +129,35 @@ export default function NewsDetail() {
                         onClick={() => setShowController(prev => !prev)}
                         style={{ cursor: 'pointer' }}
                     />
-                    <AudioController
-                        text={processedBodyForTts}
-                        hidden={!showController}
-                    />
-                    <Meta>
-                        <div>{publisher}</div>
-                        <div>{publishedAt}</div>
-                    </Meta>
+                    <AudioController text={processedBodyForTts} hidden={!showController} />
+
+                    <MetaRight>
+                        <Meta>
+                            <div>{publisher}</div>
+                            <div>{publishedAt}</div>
+                        </Meta>
+
+                        <LikeButton
+                            type="button"
+                            aria-pressed={liked}
+                            aria-label={liked ? '좋아요 취소' : '좋아요'}
+                            onClick={toggleLike}
+                        >
+                            <LikeIcon
+                                $active={liked}
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                {liked ? (
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                ) : (
+                                    <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3C4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5C22 5.42 19.58 3 16.5 3z" />
+                                )}
+                            </LikeIcon>
+                        </LikeButton>
+                    </MetaRight>
                 </MetaWrapper>
+
                 <Body>{body}</Body>
             </Wrapper>
         </div>

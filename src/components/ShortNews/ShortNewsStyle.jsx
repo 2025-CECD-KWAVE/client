@@ -1,12 +1,11 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 export const Container = styled.div`
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 0;
   height: 100%;
-  
 `;
 
 export const Header = styled.h1`
@@ -25,12 +24,11 @@ export const Header = styled.h1`
 export const Thumbnail = styled.img`
   width: 100%;
   height: 360px;
-  max-height: 360px;
   object-fit: cover;
 `;
 
 export const ContentWrapper = styled.div`
-  padding: 20px 16px 40px;
+  padding: 20px 16px 120px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -59,26 +57,23 @@ export const Body = styled.p`
   color: #333;
   white-space: pre-wrap;
   flex: 1;
-  overflow-y: auto;
-  margin-bottom: 60px;
 `;
 
 export const OriginalButton = styled.button`
-  margin-top: auto;
-  align-self: center;
-  padding: 10px 20px;
-  border-radius: 20px;
+  position: absolute;
+  right: 16px;
+  bottom: 96px;
+
+  padding: 10px 18px;
+  border-radius: 999px;
   border: none;
   background-color: #463fd4;
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  margin-bottom:20px;
 
-  &:hover {
-    opacity: 0.9;
-  }
+  -webkit-tap-highlight-color: transparent;
 
   &:active {
     transform: scale(0.98);
