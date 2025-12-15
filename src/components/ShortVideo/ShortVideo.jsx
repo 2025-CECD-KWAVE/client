@@ -269,10 +269,10 @@ function VideoCard({ item, goToDetail }) {
                             ))}
                         </ProfileRow>
                     )}
+                    <GuideText>Choose your AI Voice</GuideText>
 
                     <VideoTitle>{item.title}</VideoTitle>
                     <TimeText>{item.time}</TimeText>
-                    <GuideText>AI 보이스로 생성된 영상입니다</GuideText>
                 </ContentWrapper>
             </Container>
         </section>

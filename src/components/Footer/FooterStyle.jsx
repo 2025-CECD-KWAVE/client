@@ -43,6 +43,7 @@ export const Label = styled.div`
   background-color: #463fd4;
   color: #fff;
   transition: background-color 0.3s;
+  transform: translateY(-3px);
 `;
 
 export const IconImage = styled.img`

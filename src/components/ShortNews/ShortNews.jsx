@@ -1,4 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { apiFetch } from "../../api";
 
@@ -18,72 +25,89 @@ import placeholder2 from "../../assets/placeholder2.png";
 import placeholder3 from "../../assets/placeholder3.png";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const APP_BASE = import.meta.env.VITE_APP_BASE || import.meta.env.APP_BASE;
+const PAGE_SIZE = 10;
 
 export default function ShortNews() {
     const [isLoading, setIsLoading] = useState(true);
     const [items, setItems] = useState([]);
+    const [hasMore, setHasMore] = useState(true);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
+
     const containerRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
 
-    const placeholders = [placeholder1, placeholder2, placeholder3];
-    const getRandomPlaceholder = () =>
-        placeholders[Math.floor(Math.random() * placeholders.length)];
+    const tokenRef = useRef(localStorage.getItem("jwtToken"));
+    const fetchingRef = useRef(false);
+    const hasMoreRef = useRef(true);
+    const pageRef = useRef(0);
+
+    const placeholders = useMemo(() => [placeholder1, placeholder2, placeholder3], []);
+    const getRandomPlaceholder = useCallback(
+        () => placeholders[Math.floor(Math.random() * placeholders.length)],
+        [placeholders]
+    );
 
     useEffect(() => {
-        const token = localStorage.getItem("jwtToken");
+        hasMoreRef.current = hasMore;
+    }, [hasMore]);
 
-        const fetchNotLoggedIn = async () => {
+    const mapItem = useCallback(
+        (item) => ({
+            id: item.newsId,
+            title: item.title,
+            body: item.summary,
+            time: item.timeAgo,
+            thumbnail: item.thumbnailUrl || getRandomPlaceholder(),
+        }),
+        [getRandomPlaceholder]
+    );
+
+    const loadPage = useCallback(
+        async (nextPage) => {
+            if (fetchingRef.current || !hasMoreRef.current) return;
+
+            fetchingRef.current = true;
+            setIsFetchingMore(true);
+
             try {
-                const res = await apiFetch(`${API_BASE_URL}/api/news/list`);
-                const data = await res.json();
+                const token = tokenRef.current;
 
-                const list = Array.isArray(data)
-                    ? data
-                    : Array.isArray(data.data)
-                        ? data.data
-                        : [];
+                if (!token) {
+                    const res = await apiFetch(
+                        `${API_BASE_URL}/api/news/list?page=${nextPage}&size=${PAGE_SIZE}`
+                    );
+                    const data = await res.json();
 
-                const mapped = list.slice(0, 10).map((item) => ({
-                    id: item.newsId,
-                    title: item.title,
-                    body: item.summary,
-                    time: item.timeAgo,
-                    thumbnail: item.thumbnailUrl || getRandomPlaceholder(),
-                }));
+                    const list = Array.isArray(data) ? data : Array.isArray(data.data) ? data.data : [];
+                    const mapped = list.map(mapItem);
 
-                setItems(mapped);
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+                    setItems((prev) => (nextPage === 0 ? mapped : [...prev, ...mapped]));
 
-        const fetchLoggedIn = async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/news-recommend/news`, {
+                    if (mapped.length < PAGE_SIZE) setHasMore(false);
+                    pageRef.current = nextPage;
+                    return;
+                }
+
+                const recRes = await fetch(`${API_BASE_URL}/api/news-recommend/news`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `${token}`,
                     },
-                    body: JSON.stringify({
-                        page: 0,
-                        size: 10,
-                    }),
+                    body: JSON.stringify({ page: nextPage, size: PAGE_SIZE }),
                 });
 
-                const result = await response.json();
-                const ids = result.newsIds?.map((n) => n.newsId) || [];
+                const recData = await recRes.json();
+                const ids = recData.newsIds?.map((n) => n.newsId) || [];
 
                 if (ids.length === 0) {
-                    setItems([]);
+                    setHasMore(false);
+                    pageRef.current = nextPage;
                     return;
                 }
 
-                const detailResponse = await apiFetch(`${API_BASE_URL}/api/news/list`, {
+                const detailRes = await apiFetch(`${API_BASE_URL}/api/news/list`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -92,41 +116,56 @@ export default function ShortNews() {
                     body: JSON.stringify({ ids }),
                 });
 
-                const detailData = await detailResponse.json();
+                const detailData = await detailRes.json();
                 const list = Array.isArray(detailData) ? detailData : [];
+                const byId = new Map(list.map((x) => [x.newsId, x]));
+                const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
+                const mapped = ordered.map(mapItem);
 
-                const mapped = list.slice(0, 10).map((item) => ({
-                    id: item.newsId,
-                    title: item.title,
-                    body: item.summary,
-                    time: item.timeAgo,
-                    thumbnail: item.thumbnailUrl || getRandomPlaceholder(),
-                }));
+                setItems((prev) => {
+                    if (nextPage === 0) return mapped;
+                    const seen = new Set(prev.map((x) => x.id));
+                    const merged = [...prev];
+                    for (const it of mapped) {
+                        if (!seen.has(it.id)) merged.push(it);
+                    }
+                    return merged;
+                });
 
-                setItems(mapped);
+                if (ids.length < PAGE_SIZE) setHasMore(false);
+                pageRef.current = nextPage;
             } catch (e) {
                 console.error(e);
             } finally {
+                fetchingRef.current = false;
+                setIsFetchingMore(false);
                 setIsLoading(false);
             }
-        };
-
-        if (!token) fetchNotLoggedIn();
-        else fetchLoggedIn();
-    }, []);
+        },
+        [mapItem]
+    );
 
     useEffect(() => {
+        setIsLoading(true);
+        setItems([]);
+        setHasMore(true);
+        hasMoreRef.current = true;
+        pageRef.current = 0;
+        loadPage(0);
+    }, [loadPage]);
+
+    useLayoutEffect(() => {
         if ("scrollRestoration" in window.history) {
             window.history.scrollRestoration = "manual";
         }
 
-        const container = containerRef.current;
-        if (!container) return;
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
 
-        requestAnimationFrame(() => {
-            container.scrollTo({ top: 0, left: 0, behavior: "auto" });
-        });
-    }, [location.pathname]);
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -185,26 +224,40 @@ export default function ShortNews() {
         };
     }, []);
 
-    useEffect(() => {
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-        return () => {
-            document.body.style.overflow = originalOverflow;
-        };
-    }, []);
+    const lastSectionRef = useRef(null);
 
-    if (isLoading) {
-        return <div style={{ height: "100dvh", background: "#e0e0e0" }} />;
-    }
+    useEffect(() => {
+        const root = containerRef.current;
+        const target = lastSectionRef.current;
+        if (!root || !target) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                if (!entry?.isIntersecting) return;
+                if (fetchingRef.current || !hasMoreRef.current) return;
+                loadPage(pageRef.current + 1);
+            },
+            { root, threshold: 0.6 }
+        );
+
+        observer.observe(target);
+        return () => observer.disconnect();
+    }, [items.length, loadPage]);
 
     const goToDetail = (newsId) => {
         if (!newsId) return;
         navigate(`/detail?id=${encodeURIComponent(newsId)}`);
     };
 
+    if (isLoading) {
+        return <div style={{ height: "100dvh", background: "#e0e0e0" }} />;
+    }
+
     return (
         <>
             <Header>Short News</Header>
+
             <div
                 ref={containerRef}
                 className="shorts-container"
@@ -219,40 +272,43 @@ export default function ShortNews() {
                     background: "#fff",
                 }}
             >
-                {items.map((data, i) => (
-                    <section
-                        key={i}
-                        style={{
-                            height: "calc(100dvh - 56px)",
-                            scrollSnapAlign: "start",
-                            overflow: "hidden",
-                            background: "#fff",
-                            display: "flex",
-                            flexDirection: "column",
-                            position: "relative",
-                        }}
-                    >
-                        <Container>
-                            <Thumbnail
-                                src={data.thumbnail}
-                                alt="thumbnail"
-                                onError={(e) => {
-                                    e.currentTarget.src = getRandomPlaceholder();
-                                }}
-                            />
-                            <ContentWrapper>
-                                <NewsTitle>{data.title}</NewsTitle>
-                                <TimeText>{data.time}</TimeText>
-                                <Body>{data.body}</Body>
-                            </ContentWrapper>
-                        </Container>
+                {items.map((data, i) => {
+                    const isLast = i === items.length - 1;
+                    return (
+                        <section
+                            key={`${data.id ?? i}-${i}`}
+                            ref={isLast ? lastSectionRef : null}
+                            style={{
+                                height: "calc(100dvh - 56px)",
+                                scrollSnapAlign: "start",
+                                overflow: "hidden",
+                                background: "#fff",
+                                display: "flex",
+                                flexDirection: "column",
+                                position: "relative",
+                            }}
+                        >
+                            <Container>
+                                <Thumbnail
+                                    src={data.thumbnail}
+                                    alt="thumbnail"
+                                    onError={(e) => {
+                                        e.currentTarget.src = getRandomPlaceholder();
+                                    }}
+                                />
+                                <ContentWrapper>
+                                    <NewsTitle>{data.title}</NewsTitle>
+                                    <TimeText>{data.time}</TimeText>
+                                    <Body>{data.body}</Body>
+                                </ContentWrapper>
+                            </Container>
 
-                        <OriginalButton onClick={() => goToDetail(data.id)}>
-                            View Original
-                        </OriginalButton>
-                    </section>
+                            <OriginalButton onClick={() => goToDetail(data.id)}>View Original</OriginalButton>
+                        </section>
+                    );
+                })}
 
-                ))}
+                {isFetchingMore && <div style={{ padding: 16, textAlign: "center" }}>Loading...</div>}
             </div>
         </>
     );

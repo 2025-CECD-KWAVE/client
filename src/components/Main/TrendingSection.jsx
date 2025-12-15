@@ -22,10 +22,8 @@ export default function TrendingSection() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [cards, setCards] = useState([]);
 
-    // 🔥 placeholder 이미지 리스트
     const placeholders = [placeholder1, placeholder2, placeholder3];
 
-    // 🔥 랜덤 placeholder 반환 함수
     const getRandomPlaceholder = () => {
         return placeholders[Math.floor(Math.random() * placeholders.length)];
     };

@@ -28,8 +28,8 @@ export const VideoWrapper = styled.div`
   max-height: 520px;
   background: #000;
   overflow: hidden;
-  margin-top: 120px;
-  margin-bottom: 80px;
+  margin-top: 135px;
+  margin-bottom: 135px;
 `;
 
 export const Thumbnail = styled.img`
@@ -53,13 +53,16 @@ export const ContentWrapper = styled.div`
   box-sizing: border-box;
   align-items: flex-end;
   text-align: right;
-  background: #000;
+  background: #fbfbfbff;
+  border-radius: 15px;
+  box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
 `;
 
 export const ProfileRow = styled.div`
   display: flex;
   gap: 10px;
   align-items: center;
+  margin-top: 24px;
   margin-bottom: 16px;
   justify-content: flex-end;
 `;
@@ -113,13 +116,13 @@ export const VideoTitle = styled.h2`
   font-weight: 700;
   margin-top: 12px;
   margin-bottom: 8px;
-  color: #ffffff;
+  color: #000000ff;
   text-align: right;
 `;
 
 export const TimeText = styled.div`
   font-size: 13px;
-  color: #bdbdbd;
+  color: #5d5d5dff;
   margin-top: 8px;
   margin-bottom: 4px;
   text-align: right;
@@ -127,6 +130,6 @@ export const TimeText = styled.div`
 
 export const GuideText = styled.div`
   font-size: 13px;
-  color: #9e9e9e;
+  color: #515151ff;
   text-align: right;
 `;

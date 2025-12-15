@@ -2,7 +2,6 @@ import styled from 'styled-components';
 
 export const SectionWrapper = styled.div`
   margin-top: 20px;
-  position: relative;
 `;
 
 export const SectionTitle = styled.div`
@@ -49,14 +48,5 @@ export const SearchIconImg = styled.img`
   height: 18px;
   opacity: 0.6;
   pointer-events: auto;
-  cursor: pointer;
-`;
-
-export const BackButton = styled.img`
-  position: absolute;
-  top: 0;
-  left: 16px;
-  width: 24px;
-  height: 24px;
   cursor: pointer;
 `;

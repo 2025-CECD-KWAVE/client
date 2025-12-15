@@ -23,7 +23,7 @@ export const Header = styled.h1`
 
 export const Thumbnail = styled.img`
   width: 100%;
-  height: 360px;
+  height: 430px;
   object-fit: cover;
 `;
 
@@ -62,7 +62,7 @@ export const Body = styled.p`
 export const OriginalButton = styled.button`
   position: absolute;
   right: 16px;
-  bottom: 96px;
+  bottom: 120px;
 
   padding: 10px 18px;
   border-radius: 999px;

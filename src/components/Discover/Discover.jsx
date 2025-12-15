@@ -1,14 +1,14 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import RecommendationCard from '../Main/RecommendationCard';
-import sampleImg from '../../assets/placeholder1.png';
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import RecommendationCard from "../Main/RecommendationCard";
+import sampleImg from "../../assets/placeholder1.png";
 import { apiFetch } from "../../api";
 
 import {
     SkeletonCardContainer,
     SkeletonThumbnail,
     SkeletonText,
-    SkeletonMeta
-} from '../Main/RecommendationCardStyle';
+    SkeletonMeta,
+} from "../Main/RecommendationCardStyle";
 
 import {
     SectionWrapper,
@@ -16,10 +16,10 @@ import {
     Keyword,
     SearchWrapper,
     SearchInput,
-    SearchIconImg
-} from './DiscoverStyle';
+    SearchIconImg,
+} from "./DiscoverStyle";
 
-import searchIcon from '../../assets/search.png';
+import searchIcon from "../../assets/search.png";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -42,15 +42,15 @@ export default function Discover() {
             const data = await response.json();
             if (data.length < 10) setHasMore(false);
 
-            const mapped = data.map(item => ({
+            const mapped = data.map((item) => ({
                 title: item.title,
-                time: item.timeAgo || '방금 전',
-                provider: item.provider || '언론사',
+                time: item.timeAgo || "방금 전",
+                provider: item.provider || "언론사",
                 imageSrc: item.thumbnailUrl || sampleImg,
-                newsId: item.newsId
+                newsId: item.newsId,
             }));
 
-            setNewsList(prev => [...prev, ...mapped]);
+            setNewsList((prev) => [...prev, ...mapped]);
         } catch {
             setHasMore(false);
         } finally {
@@ -62,13 +62,13 @@ export default function Discover() {
         fetchNews();
     }, [fetchNews]);
 
-
     const runSearch = async () => {
         if (!searchKeyword.trim()) return;
 
         setLoading(true);
         setHasMore(false);
         setPage(0);
+        setNewsList([]);
 
         try {
             const res = await apiFetch(
@@ -77,35 +77,31 @@ export default function Discover() {
 
             const data = await res.json();
 
-            const sortedResults = (data.results || [])
-                .sort((a, b) => b.relevance - a.relevance);
-
-            const ids = sortedResults.map(r => r.newsId);
+            const sortedResults = (data.results || []).sort((a, b) => b.relevance - a.relevance);
+            const ids = sortedResults.map((r) => r.newsId);
 
             if (ids.length === 0) {
                 setNewsList([]);
-                setLoading(false);
                 return;
             }
 
             const detailRes = await apiFetch(`${API_BASE_URL}/api/news/list`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ids })
+                body: JSON.stringify({ ids }),
             });
 
             const detailData = await detailRes.json();
 
-            const sortedDetailData = ids.map(id =>
-                detailData.find(item => item.newsId === id)
-            );
+            const detailMap = new Map(detailData.map((x) => [x.newsId, x]));
+            const ordered = ids.map((id) => detailMap.get(id)).filter(Boolean);
 
-            const mapped = sortedDetailData.map(item => ({
+            const mapped = ordered.map((item) => ({
                 title: item.title,
-                time: item.timeAgo || '방금 전',
+                time: item.timeAgo || "방금 전",
                 provider: item.provider || "언론사",
                 imageSrc: item.thumbnailUrl || sampleImg,
-                newsId: item.newsId
+                newsId: item.newsId,
             }));
 
             setNewsList(mapped);
@@ -115,13 +111,12 @@ export default function Discover() {
         }
     };
 
-
     useEffect(() => {
         if (searchKeyword) return;
 
-        const observer = new IntersectionObserver(entries => {
+        const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting && hasMore) {
-                setPage(prev => prev + 1);
+                setPage((prev) => prev + 1);
             }
         });
 
@@ -131,7 +126,6 @@ export default function Discover() {
 
     return (
         <SectionWrapper>
-
             <SearchWrapper>
                 <SearchIconImg
                     src={searchIcon}
@@ -144,7 +138,7 @@ export default function Discover() {
                     placeholder="검색어를 입력하세요…"
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && runSearch()}
+                    onKeyDown={(e) => e.key === "Enter" && runSearch()}
                 />
             </SearchWrapper>
 
@@ -168,18 +162,17 @@ export default function Discover() {
                     <SkeletonCardContainer key={`skeleton-${idx}`}>
                         <SkeletonThumbnail />
                         <div style={{ flex: 1 }}>
-                            <SkeletonText style={{ width: '80%' }} />
-                            <SkeletonText style={{ width: '60%' }} />
+                            <SkeletonText style={{ width: "80%" }} />
+                            <SkeletonText style={{ width: "60%" }} />
                             <SkeletonMeta>
-                                <SkeletonText style={{ width: '30%' }} />
-                                <SkeletonText style={{ width: '20%' }} />
+                                <SkeletonText style={{ width: "30%" }} />
+                                <SkeletonText style={{ width: "20%" }} />
                             </SkeletonMeta>
                         </div>
                     </SkeletonCardContainer>
-                ))
-            }
+                ))}
 
-            {!searchKeyword && hasMore && <div ref={loader} style={{ height: '100px' }} />}
+            {!searchKeyword && hasMore && <div ref={loader} style={{ height: "100px" }} />}
         </SectionWrapper>
     );
 }
