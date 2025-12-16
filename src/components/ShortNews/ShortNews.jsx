@@ -1,11 +1,4 @@
-import React, {
-    useCallback,
-    useEffect,
-    useLayoutEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { apiFetch } from "../../api";
 
@@ -175,52 +168,74 @@ export default function ShortNews() {
         let currentY = 0;
         let isDragging = false;
         let startTime = 0;
+        let pointerId = null;
+
+        const reset = () => {
+            isDragging = false;
+            pointerId = null;
+        };
 
         const onPointerDown = (e) => {
+            if (e.pointerType === "mouse" && e.button !== 0) return;
+
             isDragging = true;
+            pointerId = e.pointerId;
             startY = e.clientY;
             currentY = e.clientY;
             startTime = Date.now();
+
+            try {
+                container.setPointerCapture(e.pointerId);
+            } catch { }
         };
 
         const onPointerMove = (e) => {
             if (!isDragging) return;
+            if (pointerId != null && e.pointerId !== pointerId) return;
             currentY = e.clientY;
         };
 
-        const onPointerUp = () => {
+        const onPointerUp = (e) => {
             if (!isDragging) return;
+            if (pointerId != null && e.pointerId !== pointerId) return;
 
             const delta = currentY - startY;
             const timeDiff = Date.now() - startTime;
             const threshold = 80;
             const minSwipeTime = 80;
 
-            if (Math.abs(delta) < threshold || timeDiff < minSwipeTime) {
-                isDragging = false;
-                return;
+            if (Math.abs(delta) >= threshold && timeDiff >= minSwipeTime) {
+                const step = container.clientHeight;
+                container.scrollBy({
+                    top: delta > 0 ? -step : step,
+                    behavior: "smooth",
+                });
             }
 
-            const step = container.clientHeight;
+            try {
+                container.releasePointerCapture(e.pointerId);
+            } catch { }
 
-            container.scrollBy({
-                top: delta > 0 ? -step : step,
-                behavior: "smooth",
-            });
-
-            isDragging = false;
+            reset();
         };
+
+        const onPointerCancel = () => reset();
+        const onLostPointerCapture = () => reset();
 
         container.addEventListener("pointerdown", onPointerDown);
         container.addEventListener("pointermove", onPointerMove);
         container.addEventListener("pointerup", onPointerUp);
-        container.addEventListener("pointerleave", onPointerUp);
+        container.addEventListener("pointercancel", onPointerCancel);
+        container.addEventListener("lostpointercapture", onLostPointerCapture);
+        container.addEventListener("pointerleave", onPointerCancel);
 
         return () => {
             container.removeEventListener("pointerdown", onPointerDown);
             container.removeEventListener("pointermove", onPointerMove);
             container.removeEventListener("pointerup", onPointerUp);
-            container.removeEventListener("pointerleave", onPointerUp);
+            container.removeEventListener("pointercancel", onPointerCancel);
+            container.removeEventListener("lostpointercapture", onLostPointerCapture);
+            container.removeEventListener("pointerleave", onPointerCancel);
         };
     }, []);
 
