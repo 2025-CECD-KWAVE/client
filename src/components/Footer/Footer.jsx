@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import {
     FooterContainer,
     FooterInner,
@@ -6,46 +6,43 @@ import {
     IconWrapper,
     Label,
     IconImage
-} from "./FooterStyle";
+} from './FooterStyle';
 
-import fireIcon from "../../assets/fire.png";
-import videoIcon from "../../assets/clapperboard.png";
-import userIcon from "../../assets/person.png";
-import globeIcon from "../../assets/language.png";
+import fireIcon from '../../assets/fire.png';
+import videoIcon from '../../assets/clapperboard.png';
+import userIcon from '../../assets/person.png';
+import globeIcon from '../../assets/language.png';
 
 export default function Footer() {
     const navigate = useNavigate();
-    const location = useLocation();
-
-    const isActive = (path) => location.pathname === path;
 
     return (
         <FooterContainer>
             <FooterInner>
-                <FooterItem onClick={() => navigate("/")}>
+                <FooterItem onClick={() => navigate('/')}>
                     <Label>Home</Label>
                 </FooterItem>
 
-                <FooterItem onClick={() => navigate("/discover")}>
-                    <IconWrapper active={isActive("/discover")}>
+                <FooterItem onClick={() => navigate('/discover')}>
+                    <IconWrapper>
                         <IconImage src={globeIcon} alt="Globe" />
                     </IconWrapper>
                 </FooterItem>
 
-                <FooterItem onClick={() => navigate("/short")}>
-                    <IconWrapper active={isActive("/short")}>
+                <FooterItem onClick={() => navigate('/short')}>
+                    <IconWrapper>
                         <IconImage src={fireIcon} alt="Fire" />
                     </IconWrapper>
                 </FooterItem>
 
-                <FooterItem onClick={() => navigate("/video")}>
-                    <IconWrapper active={isActive("/video")}>
+                <FooterItem onClick={() => navigate('/video')}>
+                    <IconWrapper>
                         <IconImage src={videoIcon} alt="videos" />
                     </IconWrapper>
                 </FooterItem>
 
-                <FooterItem onClick={() => navigate("/signin")}>
-                    <IconWrapper active={isActive("/signin")}>
+                <FooterItem onClick={() => navigate('/signin')}>
+                    <IconWrapper>
                         <IconImage src={userIcon} alt="User" />
                     </IconWrapper>
                 </FooterItem>

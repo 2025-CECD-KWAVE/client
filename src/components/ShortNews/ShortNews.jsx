@@ -280,6 +280,7 @@ export default function ShortNews() {
                     height: "calc(100dvh - 56px)",
                     overflowY: "scroll",
                     scrollSnapType: "y mandatory",
+                    scrollPaddingTop: "56px",
                     position: "relative",
                     touchAction: "pan-y",
                     scrollbarWidth: "none",
@@ -300,6 +301,7 @@ export default function ShortNews() {
                                 background: "#fff",
                                 display: "flex",
                                 flexDirection: "column",
+                                scrollMarginTop: "56px",
                                 position: "relative",
                             }}
                         >
