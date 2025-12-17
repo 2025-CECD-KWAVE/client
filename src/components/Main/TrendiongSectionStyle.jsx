@@ -5,15 +5,15 @@ export const TrendingContainer = styled.div`
 `;
 
 export const SectionTitle = styled.h2`
-  font-size: 20px;
+  font-size: 18px;
   margin-bottom: 12px;
-  margin-left: 32px;
+  margin-left: 28px;
 `;
 
 export const CardSlider = styled.div`
   display: flex;
   overflow-x: auto;
-  margin-left: 20px;
+  margin-left: 18px;
   margin-right: 20px;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
@@ -33,14 +33,14 @@ export const CardWrapper = styled.div`
 export const IndicatorContainer = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 8px;
-  gap: 6px;
+  margin-top: 7px;
+  gap: 5px;
 `;
 
 
 export const IndicatorDot = styled.div`
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background-color: #ccc;
   transition: background-color 0.3s ease;

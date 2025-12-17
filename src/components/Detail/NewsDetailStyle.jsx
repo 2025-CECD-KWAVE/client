@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export const Wrapper = styled.div`
-  padding: 0 16px;
+  padding: 0 14px;
   border-radius: 10px;
 `;
 
@@ -10,26 +10,30 @@ export const TitleRow = styled.div`
   flex-direction: column;
   align-items: flex-end;
   text-align: right;
+  padding-right: 2px;
+  padding-left: 2px;
 `;
 
 export const Title = styled.h2`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 `;
 
 export const VolumeIcon = styled.img`
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
 `;
 
 export const MetaWrapper = styled.div`
   display: flex;
-  padding: 10px;
+  padding-left: 5px;
+  padding-right: 3px;
+  padding-top: 5px;
   margin-top: 14px;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
+  gap: 10px;
 `;
 
 export const MetaRight = styled.div`
@@ -43,7 +47,7 @@ export const Meta = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-size: 12px;
+  font-size: 11px;
   color: #666;
   margin-top: 4px;
 `;
@@ -52,16 +56,14 @@ export const LikeButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
-
   outline: none;
   box-shadow: none;
-
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
@@ -79,17 +81,16 @@ export const LikeButton = styled.button`
 `;
 
 export const LikeIcon = styled.svg`
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   fill: ${({ $active }) => ($active ? '#ff3b30' : 'none')};
   stroke: ${({ $active }) => ($active ? '#ff3b30' : '#9aa0a6')};
   stroke-width: 2;
   vector-effect: non-scaling-stroke;
 `;
 
-
 export const Body = styled.p`
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
   margin-top: 16px;
   white-space: pre-wrap;
@@ -101,7 +102,7 @@ export const ThumbnailWrapper = styled.div`
 
 export const Thumbnail = styled.img`
   width: 100%;
-  height: 500px;
+  height: 450px;
   object-fit: cover;
   margin-bottom: 10px;
 `;
@@ -128,30 +129,28 @@ export const SkeletonBox = styled.div`
   }
 `;
 
-export const SkeletonThumbnail = styled.div`
+export const SkeletonThumbnail = styled(SkeletonBox)`
   width: 100%;
-  height: 500px;
-  background-color: #e0e0e0;
+  height: 450px;
   margin-bottom: 10px;
-  object-fit: cover;
 `;
 
 export const SkeletonTitle = styled(SkeletonBox)`
-  height: 24px;
-  margin-bottom: 8px;
-  width: 60%;
+  height: 22px;
+  width: 65%;
+  margin-bottom: 3px;
   align-self: flex-end;
 `;
 
 export const SkeletonMeta = styled(SkeletonBox)`
-  height: 14px;
-  width: 30%;
+  height: 12px;
+  width: 35%;
   margin-top: 4px;
   align-self: flex-end;
 `;
 
 export const SkeletonBody = styled(SkeletonBox)`
-  height: 14px;
+  height: 13px;
   width: 100%;
   margin: 8px 0;
 `;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import {
@@ -44,44 +44,48 @@ export default function ShortVideo() {
     const containerRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const [activeIndex, setActiveIndex] = useState(0);
 
-    const videoList = [
-        {
-            title: "트와이스 미나, 오늘은 패션모델! [포토]",
-            time: "30분 전",
-            srcChaewon: minaChaewon,
-            srcJongguk: minaJongguk,
-            srcWinter: minaWinter,
-            srcIu: minaIu,
-        },
-        {
-            title: "설현, 더프레젠트컴퍼니와 전속 계약…안효섭·신세경과 한솥밥",
-            time: "2시간 전",
-            srcChaewon: sullhyunChaewon,
-            srcJongguk: sullhyunJongguk,
-            srcWinter: sullhyunWinter,
-            srcIu: sullhyunIu,
-        },
-        {
-            title: "[ET포토] 위아이, '엔딩에서 발산나는 존재감'",
-            time: "4시간 전",
-            srcChaewon: weiChaewon,
-            srcJongguk: weiJongguk,
-            srcWinter: weiWinter,
-            srcIu: weiIu,
-        },
-        {
-            title: "효린, 'KEY' 특별 게스트는? 랄랄→임한별 '기대 폭발'",
-            time: "3시간 전",
-            srcChaewon: concertChaewon,
-            srcJongguk: concertJongguk,
-        },
-        {
-            title: "MMA2025 1차 라인업 공개...아이브·플레이브·보이넥스트도어·라이즈",
-            time: "1시간 전",
-            srcJongguk: awardJongguk,
-        },
-    ];
+    const videoList = useMemo(
+        () => [
+            {
+                title: "트와이스 미나, 오늘은 패션모델! [포토]",
+                time: "30분 전",
+                srcChaewon: minaChaewon,
+                srcJongguk: minaJongguk,
+                srcWinter: minaWinter,
+                srcIu: minaIu,
+            },
+            {
+                title: "설현, 더프레젠트컴퍼니와 전속 계약…안효섭·신세경과 한솥밥",
+                time: "2시간 전",
+                srcChaewon: sullhyunChaewon,
+                srcJongguk: sullhyunJongguk,
+                srcWinter: sullhyunWinter,
+                srcIu: sullhyunIu,
+            },
+            {
+                title: "[ET포토] 위아이, '엔딩에서 발산나는 존재감'",
+                time: "4시간 전",
+                srcChaewon: weiChaewon,
+                srcJongguk: weiJongguk,
+                srcWinter: weiWinter,
+                srcIu: weiIu,
+            },
+            {
+                title: "효린, 'KEY' 특별 게스트는?",
+                time: "3시간 전",
+                srcChaewon: concertChaewon,
+                srcJongguk: concertJongguk,
+            },
+            {
+                title: "MMA2025 1차 라인업 공개",
+                time: "1시간 전",
+                srcJongguk: awardJongguk,
+            },
+        ],
+        []
+    );
 
     useEffect(() => {
         if ("scrollRestoration" in window.history) {
@@ -91,75 +95,37 @@ export default function ShortVideo() {
         const container = containerRef.current;
         if (!container) return;
 
-        requestAnimationFrame(() => {
-            container.scrollTo({ top: 0, left: 0, behavior: "auto" });
-        });
+        container.scrollTo({ top: 0, behavior: "auto" });
     }, [location.pathname]);
 
     useEffect(() => {
-        const container = containerRef.current;
-        if (!container) return;
-
-        let startY = 0;
-        let currentY = 0;
-        let isDragging = false;
-        let startTime = 0;
-
-        const onPointerDown = (e) => {
-            isDragging = true;
-            startY = e.clientY;
-            currentY = e.clientY;
-            startTime = Date.now();
-        };
-
-        const onPointerMove = (e) => {
-            if (!isDragging) return;
-            currentY = e.clientY;
-        };
-
-        const onPointerUp = () => {
-            if (!isDragging) return;
-
-            const delta = currentY - startY;
-            const timeDiff = Date.now() - startTime;
-            const threshold = 140;
-            const minSwipeTime = 120;
-
-            if (Math.abs(delta) < threshold || timeDiff < minSwipeTime) {
-                isDragging = false;
-                return;
-            }
-
-            const step = container.clientHeight;
-
-            container.scrollBy({
-                top: delta > 0 ? -step : step,
-                behavior: "smooth",
-            });
-
-            isDragging = false;
-        };
-
-        container.addEventListener("pointerdown", onPointerDown);
-        container.addEventListener("pointermove", onPointerMove);
-        container.addEventListener("pointerup", onPointerUp);
-        container.addEventListener("pointerleave", onPointerUp);
-
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
         return () => {
-            container.removeEventListener("pointerdown", onPointerDown);
-            container.removeEventListener("pointermove", onPointerMove);
-            container.removeEventListener("pointerup", onPointerUp);
-            container.removeEventListener("pointerleave", onPointerUp);
+            document.body.style.overflow = prev;
         };
     }, []);
 
     useEffect(() => {
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-        return () => {
-            document.body.style.overflow = originalOverflow;
-        };
-    }, []);
+        const root = containerRef.current;
+        if (!root) return;
+
+        const sections = Array.from(root.querySelectorAll("section"));
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (!entry.isIntersecting) continue;
+                    const idx = sections.indexOf(entry.target);
+                    if (idx !== -1) setActiveIndex(idx);
+                }
+            },
+            { root, threshold: 0.6 }
+        );
+
+        sections.forEach((s) => observer.observe(s));
+        return () => observer.disconnect();
+    }, [videoList.length]);
 
     const goToDetail = () => {
         navigate("/short");
@@ -168,51 +134,54 @@ export default function ShortVideo() {
     return (
         <>
             <Header>Short Video</Header>
+
             <div
                 ref={containerRef}
                 style={{
                     height: "calc(100dvh - 56px)",
                     overflowY: "scroll",
                     scrollSnapType: "y mandatory",
-                    position: "relative",
-                    touchAction: "pan-y",
+                    background: "#000",
                     scrollbarWidth: "none",
                     msOverflowStyle: "none",
-                    background: "#000",
                 }}
             >
                 {videoList.map((item, idx) => (
-                    <VideoCard key={idx} item={item} goToDetail={goToDetail} />
+                    <VideoCard key={idx} item={item} active={idx === activeIndex} />
                 ))}
             </div>
         </>
     );
 }
 
-function VideoCard({ item, goToDetail }) {
+function VideoCard({ item, active }) {
     const [selectedVoice, setSelectedVoice] = useState("chaewon");
     const [thumbnail, setThumbnail] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const profiles = [
-        { key: "chaewon", img: chaewonImg, label: "AI 채원", src: item.srcChaewon },
-        { key: "jongguk", img: jonggukImg, label: "AI 종국", src: item.srcJongguk },
-        { key: "winter", img: winterImg, label: "AI 윈터", src: item.srcWinter },
-        { key: "iu", img: iuImg, label: "AI 아이유", src: item.srcIu },
-    ].filter((p) => Boolean(p.src));
+    const profiles = useMemo(
+        () =>
+            [
+                { key: "chaewon", img: chaewonImg, src: item.srcChaewon },
+                { key: "jongguk", img: jonggukImg, src: item.srcJongguk },
+                { key: "winter", img: winterImg, src: item.srcWinter },
+                { key: "iu", img: iuImg, src: item.srcIu },
+            ].filter((p) => p.src),
+        [item]
+    );
 
     useEffect(() => {
         if (!profiles.some((p) => p.key === selectedVoice)) {
-            setSelectedVoice(profiles[0]?.key ?? "chaewon");
+            setSelectedVoice(profiles[0]?.key);
         }
-    }, [item]);
+    }, [profiles, selectedVoice]);
 
     const selectedSrc =
         profiles.find((p) => p.key === selectedVoice)?.src || profiles[0]?.src;
 
     useEffect(() => {
         setIsPlaying(false);
-    }, [selectedSrc]);
+    }, [selectedSrc, active]);
 
     useEffect(() => {
         if (!selectedSrc) return;
@@ -226,15 +195,12 @@ function VideoCard({ item, goToDetail }) {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext("2d");
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, 0, 0);
             setThumbnail(canvas.toDataURL());
         };
 
         video.addEventListener("loadeddata", onLoaded);
-
-        return () => {
-            video.removeEventListener("loadeddata", onLoaded);
-        };
+        return () => video.removeEventListener("loadeddata", onLoaded);
     }, [selectedSrc]);
 
     return (
@@ -242,7 +208,6 @@ function VideoCard({ item, goToDetail }) {
             style={{
                 height: "calc(100dvh - 56px)",
                 scrollSnapAlign: "start",
-                overflow: "hidden",
                 background: "#000",
                 display: "flex",
                 flexDirection: "column",
@@ -264,13 +229,12 @@ function VideoCard({ item, goToDetail }) {
                                     onClick={() => setSelectedVoice(p.key)}
                                 >
                                     <ProfileRing $active={selectedVoice === p.key} />
-                                    <img src={p.img} alt={p.label} />
+                                    <img src={p.img} alt="" />
                                 </ProfileAvatar>
                             ))}
                         </ProfileRow>
                     )}
                     <GuideText>Choose your AI Voice</GuideText>
-
                     <VideoTitle>{item.title}</VideoTitle>
                     <TimeText>{item.time}</TimeText>
                 </ContentWrapper>
@@ -278,9 +242,3 @@ function VideoCard({ item, goToDetail }) {
         </section>
     );
 }
-
-
-
-
-
-

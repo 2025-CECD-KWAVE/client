@@ -5,7 +5,7 @@ export const FooterContainer = styled.div`
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 500px;
+  width: 450px;
   background-color: white;
   box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
   border-top-left-radius: 24px;
@@ -18,7 +18,7 @@ export const FooterInner = styled.div`
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  padding-top: 16px;
+  padding-top: 12px;
 `;
 
 export const FooterItem = styled.div`
@@ -27,7 +27,7 @@ export const FooterItem = styled.div`
   align-items: center;
   justify-content: center;
   width: 72px;
-  height: 56px;
+  height: 50px;
   cursor: pointer;
 `;
 
@@ -36,9 +36,9 @@ export const IconWrapper = styled.div`
 `;
 
 export const Label = styled.div`
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 999px;
   background-color: #463fd4;
   color: #fff;
@@ -47,7 +47,7 @@ export const Label = styled.div`
 `;
 
 export const IconImage = styled.img`
-  width: 24px;
-  height: 24px;
+  width: 21px;
+  height: 21px;
   object-fit: contain;
 `;

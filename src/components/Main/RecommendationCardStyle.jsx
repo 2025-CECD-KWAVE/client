@@ -9,9 +9,9 @@ const pulse = keyframes`
 export const SkeletonCardContainer = styled.div`
   display: flex;
   flex-direction: row;
-  padding: 16px;
+  padding: 10px;
   border-radius: 12px;
-  margin: 8px 16px;
+  margin: 7px 13px;
   background-color: #ffffff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   animation: ${pulse} 1.5s ease-in-out infinite;
@@ -21,8 +21,8 @@ export const CardContainer = styled.div`
   display: flex;
   background-color: #f8f8fc;
   border-radius: 16px;
-  padding: 12px;
-  margin: 8px 16px;
+  padding: 10px;
+  margin: 7px 13px;
   align-items: center;
   transition: 0.25s ease;
 
@@ -34,11 +34,11 @@ export const CardContainer = styled.div`
 `;
 
 export const Thumbnail = styled.img`
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   border-radius: 12px;
   object-fit: cover;
-  margin-right: 12px;
+  margin-right: 10px;
 `;
 
 export const Content = styled.div`
@@ -49,10 +49,10 @@ export const Content = styled.div`
 `;
 
 export const Title = styled.div`
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: bold;
-  margin-bottom: 8px;
-
+  margin-bottom: 1px;
+  padding:2.4px;
   display: -webkit-box;
   -webkit-line-clamp: 2;     /* 최대 3줄 */
   -webkit-box-orient: vertical;
@@ -63,10 +63,11 @@ export const Title = styled.div`
 export const MetaInfo = styled.div`
   display: flex;
   position: absolute;
-  align-items: center;       
-  font-size: 12px;
+  align-items: center;  
+  padding:1px;     
+  font-size: 11px;
   color: #666;
-  bottom: 0;
+  bottom: 3px;
   right: 0;
   left:0;
 `;
@@ -83,9 +84,9 @@ export const Time = styled.span`
 `;
 
 export const SkeletonThumbnail = styled.div`
-  width: 100px;
-  height: 80px;
-  margin-right: 12px;
+  width: 72px;
+  height: 72px;
+  margin-right: 10px;
   border-radius: 4px;
   background: #e0e0e0;
   animation: ${pulse} 1.5s infinite ease-in-out;
@@ -101,5 +102,5 @@ export const SkeletonText = styled.div`
 
 export const SkeletonMeta = styled.div`
   display: flex;
-  gap: 10px;
+  gap:9px;
 `;

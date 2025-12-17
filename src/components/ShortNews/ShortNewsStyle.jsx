@@ -12,18 +12,18 @@ export const Header = styled.h1`
   position: sticky;
   top: 0;
   z-index: 10;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   text-align: center;
   margin: 0;
-  padding: 16px 0;
+  padding: 14px 0;
   background-color: #ffffff;
   border-bottom: 1px solid #e5e5e5;
 `;
 
 export const Thumbnail = styled.img`
   width: 100%;
-  height: 430px;
+  height: 370px;
   object-fit: cover;
 `;
 
@@ -36,14 +36,14 @@ export const ContentWrapper = styled.div`
 `;
 
 export const NewsTitle = styled.h2`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 11px;
   text-align: right;
 `;
 
 export const TimeText = styled.span`
-  font-size: 12px;
+  font-size: 11px;
   color: #4b74ff;
   margin-left: auto;
   display: block;
@@ -51,8 +51,8 @@ export const TimeText = styled.span`
 `;
 
 export const Body = styled.p`
-  margin-top: 16px;
-  font-size: 14px;
+  margin-top: 14px;
+  font-size: 12.5px;
   line-height: 1.6;
   color: #333;
   white-space: pre-wrap;
@@ -61,15 +61,15 @@ export const Body = styled.p`
 
 export const OriginalButton = styled.button`
   position: absolute;
-  right: 16px;
-  bottom: 120px;
+  right: 14px;
+  bottom: 100px;
 
-  padding: 10px 18px;
+  padding: 9px 16px;
   border-radius: 999px;
   border: none;
   background-color: #463fd4;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 

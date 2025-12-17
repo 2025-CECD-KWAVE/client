@@ -1,8 +1,8 @@
 import styled from 'styled-components';
 
 export const IconImage = styled.img`
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   transform: ${({ isPlay }) => (isPlay ? "scale(0.9)" : "scale(1)")};
   transition: transform 0.1s ease;
 `;
@@ -14,11 +14,11 @@ export const MainWrapper = styled.div`
 
 export const ControllerWrapper = styled.div`
   position: absolute;
-  top: 420px;
+  top: 400px;
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
-  min-height: 110px;
+  min-height: 100px;
   padding: 12px 16px 4px 16px;
   background: white;
   border-radius: 22px;
@@ -35,7 +35,7 @@ export const ControllerWrapper = styled.div`
 export const TitleRow = styled.div`
   width: 100%;
   font-weight: bold;
-  font-size: 15px;
+  font-size: 13px;
   text-align: left;
   margin-top: 2px;
   margin-left: 10px;
@@ -59,8 +59,8 @@ export const ControlButton = styled.button`
 `;
 
 export const LoadingImage = styled.img`
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
 `;
 
 export const VoicePanel = styled.div`
@@ -73,11 +73,11 @@ export const VoiceButton = styled.button`
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 4px 4px 40px 4px;
-  width: 70px;
-  height: 80px;
+  padding: 3px 3px 36px 3px;
+  width: 63px;
+  height: 72px;
   border-radius: 14px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   box-sizing: border-box;
@@ -94,8 +94,8 @@ export const VoiceButton = styled.button`
 `;
 
 export const VoiceImage = styled.img`
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 100%;
   object-fit: cover;
   margin-bottom: 2px;
@@ -104,7 +104,7 @@ export const VoiceImage = styled.img`
 export const ControlRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 13px;
   width: 100%;
   justify-content: flex-start;
 `;

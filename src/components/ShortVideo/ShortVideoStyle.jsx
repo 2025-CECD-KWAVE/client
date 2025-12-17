@@ -12,24 +12,23 @@ export const Header = styled.h1`
   position: sticky;
   top: 0;
   z-index: 10;
-  height: 56px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   text-align: center;
   margin: 0;
-  line-height: 56px;
+  padding: 14px 0;
   background-color: #ffffff;
   border-bottom: 1px solid #e5e5e5;
 `;
 
 export const VideoWrapper = styled.div`
   width: 100%;
-  height: 360px;
+  height: 340px;
   max-height: 520px;
   background: #000;
   overflow: hidden;
-  margin-top: 135px;
-  margin-bottom: 135px;
+  margin-top: 125px;
+  margin-bottom: 125px;
 `;
 
 export const Thumbnail = styled.img`
@@ -62,15 +61,15 @@ export const ProfileRow = styled.div`
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-top: 24px;
-  margin-bottom: 16px;
+  margin-top: 22px;
+  margin-bottom: 14px;
   justify-content: flex-end;
 `;
 
 export const ProfileAvatar = styled.button`
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -112,24 +111,24 @@ export const ProfileRing = styled.span`
 `;
 
 export const VideoTitle = styled.h2`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  margin-top: 12px;
-  margin-bottom: 8px;
+  margin-top: 10px;
+  margin-bottom: 4px;
   color: #000000ff;
   text-align: right;
 `;
 
 export const TimeText = styled.div`
-  font-size: 13px;
+  font-size: 12px;
   color: #5d5d5dff;
-  margin-top: 8px;
+  margin-top: 4px;
   margin-bottom: 4px;
   text-align: right;
 `;
 
 export const GuideText = styled.div`
-  font-size: 13px;
+  font-size: 12px;
   color: #515151ff;
   text-align: right;
 `;

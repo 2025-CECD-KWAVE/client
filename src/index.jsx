@@ -19,8 +19,8 @@ createRoot(document.getElementById('root')).render(
         <Route path='/detail' element={<NewsDetailPage></NewsDetailPage>} />
         <Route path='/signin' element={<LoginPage></LoginPage>} />
         <Route path='/discover' element={<DiscoverPage></DiscoverPage>} />
-        <Route path='/short' element={<ShortNewsPage></ShortNewsPage>} />
-        <Route path='/video' element={<ShortVideoPage></ShortVideoPage>} />
+        <Route path="/short" element={<ShortNewsPage key="short-page" />} />
+        <Route path="/video" element={<ShortVideoPage key="video-page" />} />
       </Routes>
     </BrowserRouter>
 

@@ -10,7 +10,7 @@ export const Root = styled.div`
 `;
 
 export const AppWrapper = styled.div`
-  width: 500px;
+  width: 450px;
   max-width: 1000px;     // 모바일 기준 너비
   position: relative;
   background-color: #fff;

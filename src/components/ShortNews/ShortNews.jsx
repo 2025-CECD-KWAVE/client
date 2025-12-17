@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../api";
 
 import {
@@ -25,15 +25,16 @@ export default function ShortNews() {
     const [items, setItems] = useState([]);
     const [hasMore, setHasMore] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
 
-    const containerRef = useRef(null);
     const navigate = useNavigate();
-    const location = useLocation();
+    const containerRef = useRef(null);
+    const lastSectionRef = useRef(null);
 
     const tokenRef = useRef(localStorage.getItem("jwtToken"));
+    const pageRef = useRef(0);
     const fetchingRef = useRef(false);
     const hasMoreRef = useRef(true);
-    const pageRef = useRef(0);
 
     const placeholders = useMemo(() => [placeholder1, placeholder2, placeholder3], []);
     const getRandomPlaceholder = useCallback(
@@ -56,6 +57,48 @@ export default function ShortNews() {
         [getRandomPlaceholder]
     );
 
+    const fetchList = useCallback(
+        async (page) => {
+            const token = tokenRef.current;
+
+            if (!token) {
+                const res = await apiFetch(
+                    `${API_BASE_URL}/api/news/list?page=${page}&size=${PAGE_SIZE}`
+                );
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : data?.data ?? [];
+                return list.map(mapItem);
+            }
+
+            const recRes = await fetch(`${API_BASE_URL}/api/news-recommend/news`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `${token}`,
+                },
+                body: JSON.stringify({ page, size: PAGE_SIZE }),
+            });
+
+            const recData = await recRes.json();
+            const ids = recData?.newsIds?.map((n) => n.newsId) || [];
+            if (ids.length === 0) return [];
+
+            const detailRes = await apiFetch(`${API_BASE_URL}/api/news/list`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `${token}`,
+                },
+                body: JSON.stringify({ ids }),
+            });
+
+            const detailData = await detailRes.json();
+            const byId = new Map(detailData.map((x) => [x.newsId, x]));
+            return ids.map((id) => byId.get(id)).filter(Boolean).map(mapItem);
+        },
+        [mapItem]
+    );
+
     const loadPage = useCallback(
         async (nextPage) => {
             if (fetchingRef.current || !hasMoreRef.current) return;
@@ -64,56 +107,7 @@ export default function ShortNews() {
             setIsFetchingMore(true);
 
             try {
-                const token = tokenRef.current;
-
-                if (!token) {
-                    const res = await apiFetch(
-                        `${API_BASE_URL}/api/news/list?page=${nextPage}&size=${PAGE_SIZE}`
-                    );
-                    const data = await res.json();
-
-                    const list = Array.isArray(data) ? data : Array.isArray(data.data) ? data.data : [];
-                    const mapped = list.map(mapItem);
-
-                    setItems((prev) => (nextPage === 0 ? mapped : [...prev, ...mapped]));
-
-                    if (mapped.length < PAGE_SIZE) setHasMore(false);
-                    pageRef.current = nextPage;
-                    return;
-                }
-
-                const recRes = await fetch(`${API_BASE_URL}/api/news-recommend/news`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `${token}`,
-                    },
-                    body: JSON.stringify({ page: nextPage, size: PAGE_SIZE }),
-                });
-
-                const recData = await recRes.json();
-                const ids = recData.newsIds?.map((n) => n.newsId) || [];
-
-                if (ids.length === 0) {
-                    setHasMore(false);
-                    pageRef.current = nextPage;
-                    return;
-                }
-
-                const detailRes = await apiFetch(`${API_BASE_URL}/api/news/list`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `${token}`,
-                    },
-                    body: JSON.stringify({ ids }),
-                });
-
-                const detailData = await detailRes.json();
-                const list = Array.isArray(detailData) ? detailData : [];
-                const byId = new Map(list.map((x) => [x.newsId, x]));
-                const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
-                const mapped = ordered.map(mapItem);
+                const mapped = await fetchList(nextPage);
 
                 setItems((prev) => {
                     if (nextPage === 0) return mapped;
@@ -125,17 +119,15 @@ export default function ShortNews() {
                     return merged;
                 });
 
-                if (ids.length < PAGE_SIZE) setHasMore(false);
+                if (mapped.length < PAGE_SIZE) setHasMore(false);
                 pageRef.current = nextPage;
-            } catch (e) {
-                console.error(e);
             } finally {
                 fetchingRef.current = false;
                 setIsFetchingMore(false);
                 setIsLoading(false);
             }
         },
-        [mapItem]
+        [fetchList]
     );
 
     useEffect(() => {
@@ -144,102 +136,42 @@ export default function ShortNews() {
         setHasMore(true);
         hasMoreRef.current = true;
         pageRef.current = 0;
+        setActiveIndex(0);
         loadPage(0);
     }, [loadPage]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if ("scrollRestoration" in window.history) {
             window.history.scrollRestoration = "manual";
         }
 
-        const originalOverflow = document.body.style.overflow;
+        const prev = document.body.style.overflow;
         document.body.style.overflow = "hidden";
-
         return () => {
-            document.body.style.overflow = originalOverflow;
+            document.body.style.overflow = prev;
         };
     }, []);
 
     useEffect(() => {
-        const container = containerRef.current;
-        if (!container) return;
+        const root = containerRef.current;
+        if (!root) return;
 
-        let startY = 0;
-        let currentY = 0;
-        let isDragging = false;
-        let startTime = 0;
-        let pointerId = null;
+        const sections = Array.from(root.querySelectorAll("section"));
 
-        const reset = () => {
-            isDragging = false;
-            pointerId = null;
-        };
+        const indexObserver = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (!entry.isIntersecting) continue;
+                    const idx = sections.indexOf(entry.target);
+                    if (idx !== -1) setActiveIndex(idx);
+                }
+            },
+            { root, threshold: 0.6 }
+        );
 
-        const onPointerDown = (e) => {
-            if (e.pointerType === "mouse" && e.button !== 0) return;
-
-            isDragging = true;
-            pointerId = e.pointerId;
-            startY = e.clientY;
-            currentY = e.clientY;
-            startTime = Date.now();
-
-            try {
-                container.setPointerCapture(e.pointerId);
-            } catch { }
-        };
-
-        const onPointerMove = (e) => {
-            if (!isDragging) return;
-            if (pointerId != null && e.pointerId !== pointerId) return;
-            currentY = e.clientY;
-        };
-
-        const onPointerUp = (e) => {
-            if (!isDragging) return;
-            if (pointerId != null && e.pointerId !== pointerId) return;
-
-            const delta = currentY - startY;
-            const timeDiff = Date.now() - startTime;
-            const threshold = 80;
-            const minSwipeTime = 80;
-
-            if (Math.abs(delta) >= threshold && timeDiff >= minSwipeTime) {
-                const step = container.clientHeight;
-                container.scrollBy({
-                    top: delta > 0 ? -step : step,
-                    behavior: "smooth",
-                });
-            }
-
-            try {
-                container.releasePointerCapture(e.pointerId);
-            } catch { }
-
-            reset();
-        };
-
-        const onPointerCancel = () => reset();
-        const onLostPointerCapture = () => reset();
-
-        container.addEventListener("pointerdown", onPointerDown);
-        container.addEventListener("pointermove", onPointerMove);
-        container.addEventListener("pointerup", onPointerUp);
-        container.addEventListener("pointercancel", onPointerCancel);
-        container.addEventListener("lostpointercapture", onLostPointerCapture);
-        container.addEventListener("pointerleave", onPointerCancel);
-
-        return () => {
-            container.removeEventListener("pointerdown", onPointerDown);
-            container.removeEventListener("pointermove", onPointerMove);
-            container.removeEventListener("pointerup", onPointerUp);
-            container.removeEventListener("pointercancel", onPointerCancel);
-            container.removeEventListener("lostpointercapture", onLostPointerCapture);
-            container.removeEventListener("pointerleave", onPointerCancel);
-        };
-    }, []);
-
-    const lastSectionRef = useRef(null);
+        sections.forEach((s) => indexObserver.observe(s));
+        return () => indexObserver.disconnect();
+    }, [items.length]);
 
     useEffect(() => {
         const root = containerRef.current;
@@ -247,9 +179,8 @@ export default function ShortNews() {
         if (!root || !target) return;
 
         const observer = new IntersectionObserver(
-            (entries) => {
-                const entry = entries[0];
-                if (!entry?.isIntersecting) return;
+            ([entry]) => {
+                if (!entry.isIntersecting) return;
                 if (fetchingRef.current || !hasMoreRef.current) return;
                 loadPage(pageRef.current + 1);
             },
@@ -260,9 +191,8 @@ export default function ShortNews() {
         return () => observer.disconnect();
     }, [items.length, loadPage]);
 
-    const goToDetail = (newsId) => {
-        if (!newsId) return;
-        navigate(`/detail?id=${encodeURIComponent(newsId)}`);
+    const goToDetail = (id) => {
+        navigate(`/detail?id=${encodeURIComponent(id)}`);
     };
 
     if (isLoading) {
@@ -280,50 +210,46 @@ export default function ShortNews() {
                     height: "calc(100dvh - 56px)",
                     overflowY: "scroll",
                     scrollSnapType: "y mandatory",
-                    position: "relative",
-                    touchAction: "pan-y",
+                    background: "#fff",
                     scrollbarWidth: "none",
                     msOverflowStyle: "none",
-                    background: "#fff",
                 }}
             >
                 {items.map((data, i) => {
                     const isLast = i === items.length - 1;
+
                     return (
                         <section
-                            key={`${data.id ?? i}-${i}`}
+                            key={data.id ?? i}
                             ref={isLast ? lastSectionRef : null}
                             style={{
                                 height: "calc(100dvh - 56px)",
                                 scrollSnapAlign: "start",
-                                overflow: "hidden",
-                                background: "#fff",
                                 display: "flex",
                                 flexDirection: "column",
-                                position: "relative",
                             }}
                         >
                             <Container>
                                 <Thumbnail
                                     src={data.thumbnail}
-                                    alt="thumbnail"
-                                    onError={(e) => {
-                                        e.currentTarget.src = getRandomPlaceholder();
-                                    }}
+                                    onError={(e) => (e.currentTarget.src = getRandomPlaceholder())}
                                 />
                                 <ContentWrapper>
                                     <NewsTitle>{data.title}</NewsTitle>
                                     <TimeText>{data.time}</TimeText>
                                     <Body>{data.body}</Body>
                                 </ContentWrapper>
+                                <OriginalButton onClick={() => goToDetail(data.id)}>
+                                    View Original
+                                </OriginalButton>
                             </Container>
-
-                            <OriginalButton onClick={() => goToDetail(data.id)}>View Original</OriginalButton>
                         </section>
                     );
                 })}
 
-                {isFetchingMore && <div style={{ padding: 16, textAlign: "center" }}>Loading...</div>}
+                {isFetchingMore && (
+                    <div style={{ padding: 16, textAlign: "center" }}>Loading...</div>
+                )}
             </div>
         </>
     );

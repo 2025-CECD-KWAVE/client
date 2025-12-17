@@ -11,14 +11,14 @@ import placeholder3 from '../../assets/placeholder3.png';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const SectionWrapper = styled.div`
-  margin-top: 32px;
+  margin-top: 28px;
 `;
 
 const SectionTitle = styled.div`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
-  padding: 0 16px 12px;
-  margin-left: 16px;
+  padding: 0 12px 11px;
+  margin-left: 14px;
 `;
 
 const Keyword = styled.span`
