@@ -10,19 +10,36 @@ import LoginPage from './pages/Login/LoginPage';
 import ShortNewsPage from './pages/ShortNewsPage/ShortNewsPage';
 import ShortVideoPage from './pages/ShortVideoPage/ShortVideoPage';
 
+import ReloadOnce from "./ReloadOnce";
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={<MainPage></MainPage>} />
-        <Route path='/detail' element={<NewsDetailPage></NewsDetailPage>} />
-        <Route path='/signin' element={<LoginPage></LoginPage>} />
-        <Route path='/discover' element={<DiscoverPage></DiscoverPage>} />
-        <Route path="/short" element={<ShortNewsPage key="short-page" />} />
-        <Route path="/video" element={<ShortVideoPage key="video-page" />} />
+        <Route path="/" element={<MainPage />} />
+        <Route path="/detail" element={<NewsDetailPage />} />
+        <Route path="/signin" element={<LoginPage />} />
+        <Route path="/discover" element={<DiscoverPage />} />
+
+        <Route
+          path="/short"
+          element={
+            <ReloadOnce storageKey="short">
+              <ShortNewsPage />
+            </ReloadOnce>
+          }
+        />
+
+        <Route
+          path="/video"
+          element={
+            <ReloadOnce storageKey="video">
+              <ShortVideoPage />
+            </ReloadOnce>
+          }
+        />
       </Routes>
     </BrowserRouter>
+  </StrictMode>
+);
 
-  </StrictMode>,
-)
